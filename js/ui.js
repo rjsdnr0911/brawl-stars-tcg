@@ -1,0 +1,376 @@
+// 브롤스타즈 TCG - UI 렌더링 (Pokemon TCG Pocket 스타일)
+
+(function() {
+    'use strict';
+
+    const DEBUG = false;
+
+    // ===== UI 렌더링 =====
+    function render(gameState) {
+        if (!gameState) {
+            console.error('render: gameState가 없습니다');
+            return;
+        }
+
+        try {
+            // 플레이어 영역
+            renderPlayerArea(gameState.player, 'player');
+
+            // AI 영역
+            renderPlayerArea(gameState.ai, 'ai');
+
+            // 턴 정보
+            renderTurnInfo(gameState);
+
+            // 에너지존
+            renderEnergyZone(gameState.player);
+
+            // 손패 개수
+            updateHandCount(gameState.player);
+
+        } catch (error) {
+            console.error('render 오류:', error);
+        }
+    }
+
+    // ===== 플레이어 영역 렌더링 =====
+    function renderPlayerArea(player, playerType) {
+        try {
+            // 손패 (플레이어만, 패널 내부에)
+            if (playerType === 'player') {
+                const handEl = document.getElementById('player-hand');
+                if (handEl) {
+                    handEl.innerHTML = '';
+                    player.hand.forEach((card, index) => {
+                        const cardEl = createCardElement(card, playerType, 'hand', index);
+                        handEl.appendChild(cardEl);
+                    });
+                }
+            }
+            // AI 손패는 표시하지 않음
+
+            // 배틀존
+            const battleEl = document.getElementById(playerType + '-battle');
+            if (battleEl) {
+                battleEl.innerHTML = '';
+                if (player.battleZone) {
+                    const cardEl = createCardElement(player.battleZone, playerType, 'battle', 0);
+                    battleEl.appendChild(cardEl);
+                }
+            }
+
+            // 벤치
+            const benchEl = document.getElementById(playerType + '-bench');
+            if (benchEl) {
+                benchEl.innerHTML = '';
+                player.bench.forEach((brawler, index) => {
+                    if (brawler) {
+                        const cardEl = createCardElement(brawler, playerType, 'bench', index);
+                        benchEl.appendChild(cardEl);
+                    }
+                });
+            }
+
+            // 점수
+            const prizesEl = document.getElementById(playerType + '-prizes');
+            if (prizesEl) {
+                prizesEl.textContent = player.prizes + ' / 3';
+            }
+
+            // 덱 개수
+            const deckCountEl = document.getElementById(playerType + '-deck-count');
+            if (deckCountEl) {
+                deckCountEl.textContent = player.deck.length;
+            }
+
+            // 에너지 개수 (상대)
+            if (playerType === 'ai') {
+                const energyCountEl = document.getElementById('ai-energy-count');
+                if (energyCountEl) {
+                    energyCountEl.textContent = player.energyZone.length;
+                }
+            } else {
+                const energyCountEl = document.getElementById('player-energy-count');
+                if (energyCountEl) {
+                    energyCountEl.textContent = player.energyZone.length;
+                }
+            }
+
+        } catch (error) {
+            console.error('renderPlayerArea 오류:', error);
+        }
+    }
+
+    // ===== 손패 개수 업데이트 =====
+    function updateHandCount(player) {
+        const handCountEl = document.getElementById('hand-count');
+        if (handCountEl) {
+            handCountEl.textContent = player.hand.length;
+        }
+    }
+
+    // ===== 에너지존 렌더링 =====
+    function renderEnergyZone(player) {
+        const energyItemsEl = document.getElementById('energy-items');
+        if (!energyItemsEl) return;
+
+        energyItemsEl.innerHTML = '';
+
+        player.energyZone.forEach((energy, index) => {
+            const energyDiv = document.createElement('div');
+            energyDiv.className = 'energy-item';
+            energyDiv.innerHTML = '<img src="images/ui/ui_energy_brawl.png" alt="Energy" class="energy-icon">';
+            energyDiv.dataset.index = index;
+
+            // 드래그 시작
+            energyDiv.draggable = true;
+            energyDiv.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('energyIndex', index);
+                energyDiv.classList.add('dragging');
+            });
+
+            energyDiv.addEventListener('dragend', function(e) {
+                energyDiv.classList.remove('dragging');
+            });
+
+            // 클릭해서 붙이기 (대체 방법)
+            energyDiv.addEventListener('click', function() {
+                // 에너지 선택 상태 표시
+                document.querySelectorAll('.energy-item').forEach(e => e.style.border = 'none');
+                energyDiv.style.border = '3px solid yellow';
+
+                // 다음 브롤러 클릭 시 부착
+                window.selectedEnergyIndex = index;
+                alert('에너지를 붙일 브롤러를 클릭하세요');
+            });
+
+            energyItemsEl.appendChild(energyDiv);
+        });
+    }
+
+    // ===== 카드 요소 생성 =====
+    function createCardElement(card, playerType, location, index) {
+        const div = document.createElement('div');
+        div.className = 'card';
+
+        // 브롤러 카드
+        if (card.cardType === 'brawler') {
+            const imagePath = `images/brawlers/brawler_${card.id}.png`;
+            div.innerHTML = `
+                <div class="card-image-container">
+                    <img src="${imagePath}" alt="${card.name}" class="card-image" onerror="this.style.display='none'">
+                </div>
+                <div class="card-info">
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-hp">HP: ${card.hp}/${card.maxHp}</div>
+                    <div class="card-energy">${getEnergyDisplay(card)}</div>
+                    <div class="card-attacks">${getAttacksDisplay(card, playerType, location)}</div>
+                </div>
+            `;
+
+            // 배치 클릭 이벤트 (플레이어 손패만)
+            if (playerType === 'player' && location === 'hand' && card.isBasic) {
+                div.onclick = function() {
+                    // 배틀존이 비어있으면 배틀존으로, 아니면 벤치로
+                    const toBattle = !window.Game.getState().player.battleZone;
+                    window.Game.playBrawler(index, toBattle);
+                    render(window.Game.getState());
+                };
+                div.style.cursor = 'pointer';
+            }
+
+            // 에너지 부착 (플레이어 필드 - 드래그 또는 클릭)
+            if (playerType === 'player' && location !== 'hand') {
+                // 드래그로 에너지 받기
+                div.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    div.classList.add('drop-target');
+                });
+
+                div.addEventListener('dragleave', function(e) {
+                    div.classList.remove('drop-target');
+                });
+
+                div.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    div.classList.remove('drop-target');
+
+                    const energyIndex = e.dataTransfer.getData('energyIndex');
+                    if (energyIndex !== undefined) {
+                        attachEnergyToCard(location, index);
+                    }
+                });
+
+                // 클릭으로 에너지 부착 (선택된 에너지가 있을 때)
+                div.addEventListener('click', function() {
+                    if (window.selectedEnergyIndex !== undefined) {
+                        attachEnergyToCard(location, index);
+                        window.selectedEnergyIndex = undefined;
+                        document.querySelectorAll('.energy-item').forEach(e => e.style.border = 'none');
+                    }
+                });
+            }
+
+            // 공격 (플레이어 배틀존)
+            if (playerType === 'player' && location === 'battle' && card.canAttack) {
+                div.classList.add('can-attack');
+
+                // 클릭하면 공격 패널 표시
+                div.addEventListener('click', function() {
+                    showAttackPanel(card);
+                });
+            }
+        }
+        // 트레이너 카드
+        else if (card.cardType === 'trainer') {
+            const imagePath = `images/trainers/trainer_${card.id}.png`;
+            div.innerHTML = `
+                <div class="card-image-container">
+                    <img src="${imagePath}" alt="${card.name}" class="card-image" onerror="this.style.display='none'">
+                </div>
+                <div class="card-info">
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-type">${card.trainerType === 'item' ? '아이템' : '서포터'}</div>
+                    <div class="card-description">${card.description || ''}</div>
+                </div>
+            `;
+
+            // 사용 클릭 이벤트
+            if (playerType === 'player' && location === 'hand') {
+                div.onclick = function() {
+                    useTrainerCard(index);
+                };
+                div.style.cursor = 'pointer';
+            }
+        }
+
+        return div;
+    }
+
+    // ===== 에너지 붙이기 =====
+    function attachEnergyToCard(location, index) {
+        const result = window.Game.attachEnergy(location, index);
+        if (result) {
+            render(window.Game.getState());
+        }
+    }
+
+    // ===== 공격 패널 표시 =====
+    function showAttackPanel(brawler) {
+        const attackPanel = document.getElementById('attack-panel');
+        const attackOptions = document.getElementById('attack-options');
+        const attackerName = document.getElementById('attacker-name');
+        const overlay = document.getElementById('overlay');
+
+        if (!brawler || !brawler.attacks) return;
+
+        attackerName.textContent = brawler.name;
+        attackOptions.innerHTML = '';
+
+        brawler.attacks.forEach((attack, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'attack-option-btn';
+
+            const costStr = window.EnergySystem.getEnergyDisplay(attack.cost);
+            const canPay = window.EnergySystem.canPayCost(brawler, attack.cost);
+
+            btn.innerHTML = `
+                <div>${attack.name}</div>
+                <div class="attack-cost">${costStr}</div>
+                <div class="attack-damage">피해: ${attack.damage}</div>
+            `;
+
+            if (!canPay) {
+                btn.disabled = true;
+            } else {
+                btn.onclick = function() {
+                    window.Game.attack(i);
+                    attackPanel.classList.remove('active');
+                    overlay.classList.remove('active');
+                    render(window.Game.getState());
+                };
+            }
+
+            attackOptions.appendChild(btn);
+        });
+
+        attackPanel.classList.add('active');
+        overlay.classList.add('active');
+    }
+
+    // ===== 에너지 표시 =====
+    function getEnergyDisplay(card) {
+        if (!card.energy || card.energy.length === 0) {
+            return '에너지: 없음';
+        }
+        return '🔷 x ' + card.energy.length;
+    }
+
+    // ===== 공격 표시 (간단히만) =====
+    function getAttacksDisplay(card, playerType, location) {
+        if (!card.attacks || card.attacks.length === 0) {
+            return '';
+        }
+
+        // 배틀존 브롤러만 공격 표시
+        if (location !== 'battle') {
+            return ''; // 벤치는 공격 숨김
+        }
+
+        return card.attacks.map((atk, i) => {
+            const costStr = window.EnergySystem.getEnergyDisplay(atk.cost);
+            return `<div class="attack">${costStr} ${atk.name} ${atk.damage}</div>`;
+        }).join('');
+    }
+
+    // ===== 트레이너 카드 사용 =====
+    function useTrainerCard(handIndex) {
+        const player = window.Game.getState().player;
+        const card = player.hand[handIndex];
+
+        if (!card || card.cardType !== 'trainer') {
+            return;
+        }
+
+        // 서포터는 턴당 1회
+        if (card.trainerType === 'supporter' && player.supporterUsedThisTurn) {
+            alert('이번 턴에 이미 서포터를 사용했습니다');
+            return;
+        }
+
+        // 효과 실행
+        const success = window.Effects.handleTrainerEffect(card.effect, window.Game.getState());
+
+        if (success) {
+            // 손패에서 제거
+            player.hand.splice(handIndex, 1);
+
+            // 서포터 사용 표시
+            if (card.trainerType === 'supporter') {
+                player.supporterUsedThisTurn = true;
+            }
+
+            // UI 업데이트
+            render(window.Game.getState());
+        }
+    }
+
+    // ===== 턴 정보 렌더링 =====
+    function renderTurnInfo(gameState) {
+        const turnInfoEl = document.getElementById('turn-info');
+        if (turnInfoEl) {
+            const current = gameState.currentPlayer === 'player' ? '플레이어' : 'AI';
+            turnInfoEl.innerHTML = `턴 ${gameState.turnCount}<br>${current}`;
+        }
+    }
+
+    // 전역 노출
+    window.UI = {
+        render: render,
+        showAttackPanel: showAttackPanel
+    };
+
+    if (DEBUG) {
+        console.log('UI 시스템 로드 완료');
+    }
+})();

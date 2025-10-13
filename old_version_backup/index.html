@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brawl Cards</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/cards.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- AI 영역 -->
+        <div id="ai-area">
+            <div id="ai-hp">25</div>
+            <div id="ai-elixir">1/1</div>
+            <div id="ai-field" class="field"></div>
+            <div id="ai-hand" class="hand"></div>
+        </div>
+
+        <!-- 턴 정보 -->
+        <div id="turn-info">Turn 1 - Your Turn</div>
+
+        <!-- 플레이어 영역 -->
+        <div id="player-area">
+            <div id="player-field" class="field"></div>
+            <div id="player-hand" class="hand"></div>
+            <div id="player-hp">25</div>
+            <div id="player-elixir">1/1</div>
+        </div>
+
+        <!-- 게임 컨트롤 -->
+        <div id="game-controls">
+            <button id="end-turn-btn">End Turn</button>
+            <button id="restart-btn" style="display: none;">Restart Game</button>
+        </div>
+
+        <!-- 게임 시작 버튼 -->
+        <div id="start-screen">
+            <h1>Brawl Cards</h1>
+            <button id="start-game-btn" onclick="Game.init()">Start Game</button>
+        </div>
+    </div>
+
+    <!-- 스크립트 로드 순서: cards → effects → ui → ai → game -->
+    <script src="js/cards.js"></script>
+    <script src="js/effects.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

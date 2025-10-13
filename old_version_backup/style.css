@@ -1,0 +1,252 @@
+/* Brawl Cards - Main Styles */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 1200px;
+    min-height: 800px;
+    max-height: 95vh;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    position: relative;
+    overflow-y: auto;
+}
+
+#ai-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 3px dashed #ccc;
+    padding-bottom: 10px;
+}
+
+#player-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column-reverse;
+    padding-top: 10px;
+}
+
+/* HP 스타일 */
+#player-hp, #ai-hp {
+    font-size: 32px;
+    font-weight: bold;
+    color: #e74c3c;
+    text-align: center;
+    padding: 0;
+    background: white;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    border: 3px solid #e74c3c;
+    position: absolute;
+    z-index: 100;
+}
+
+#player-hp {
+    bottom: 20px;
+    right: 20px;
+}
+
+#ai-hp {
+    top: 20px;
+    right: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#ai-hp:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+}
+
+.low-hp {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px 10px rgba(231, 76, 60, 0);
+    }
+}
+
+/* 엘릭서 스타일 */
+#player-elixir, #ai-elixir {
+    font-size: 20px;
+    font-weight: bold;
+    color: #9b59b6;
+    text-align: center;
+    padding: 10px 15px;
+    background: white;
+    border-radius: 10px;
+    border: 3px solid #9b59b6;
+    position: absolute;
+    z-index: 100;
+    min-width: 80px;
+}
+
+#player-elixir {
+    bottom: 20px;
+    left: 20px;
+}
+
+#ai-elixir {
+    top: 20px;
+    left: 20px;
+}
+
+/* 턴 정보 */
+#turn-info {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 12px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 10px;
+    margin: 10px 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 손패 영역 */
+#player-hand, #ai-hand {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    min-height: 220px;
+    align-items: center;
+}
+
+#ai-hand {
+    margin-bottom: 10px;
+}
+
+#player-hand {
+    margin-top: 10px;
+}
+
+/* 필드 영역 */
+#player-field, #ai-field {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 10px;
+    min-height: 220px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    align-items: center;
+}
+
+#ai-field {
+    margin-bottom: 5px;
+}
+
+#player-field {
+    margin-top: 5px;
+}
+
+/* 게임 컨트롤 */
+#game-controls {
+    text-align: center;
+    padding: 10px;
+}
+
+#end-turn-btn, #restart-btn {
+    padding: 15px 40px;
+    font-size: 18px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 0 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#end-turn-btn:hover, #restart-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+#end-turn-btn:active, #restart-btn:active {
+    transform: scale(0.98);
+}
+
+#end-turn-btn:disabled {
+    background: linear-gradient(90deg, #95a5a6, #7f8c8d);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 시작 화면 */
+#start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#start-screen h1 {
+    font-size: 64px;
+    margin-bottom: 40px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#start-game-btn {
+    padding: 20px 50px;
+    font-size: 24px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+#start-game-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+#start-game-btn:active {
+    transform: scale(1.05);
+}

@@ -1,0 +1,543 @@
+# 브롤스타즈 TCG - 이미지 생성 가이드
+
+## 📋 생성 필요 이미지 목록
+
+### 🃏 브롤러 카드 이미지 (총 21장)
+
+#### Phase 1 기본 브롤러 (5장)
+1. **Shelly** (셸리)
+2. **Colt** (콜트)
+3. **Nita** (니타)
+4. **Poco** (포코)
+5. **Bull** (불)
+
+#### Phase 1 진화 브롤러 (3장)
+6. **Bandita Shelly** (반디타 셸리)
+7. **Royal Agent Colt** (로얄 에이전트 콜트)
+8. **Serenade Poco** (세레나데 포코)
+
+#### Phase 1 특수 토큰 (1장)
+9. **Bruce** (브루스 - 니타의 곰)
+
+#### Phase 2 신규 브롤러 (10장)
+10. **Edgar** (에드거) - Mythic 암살자
+11. **Mortis** (모티스) - Mythic 암살자
+12. **Byron** (바이런) - Mythic 서포터
+13. **Bea** (비) - Epic 저격수
+14. **Bibi** (비비) - Epic 전사
+15. **Piper** (파이퍼) - Epic 저격수
+16. **Dynamike** (다이너마이크) - Super Rare 폭발물
+17. **Barley** (발리) - Rare 제어
+18. **Jessie** (제시) - Super Rare 소환사
+19. **Penny** (페니) - Super Rare 소환사
+
+#### Phase 2 신규 토큰 (2장)
+20. **Scrappy** (스크래피 - 제시의 터렛)
+21. **Old Lobber** (올드 로버 - 페니의 캐논)
+
+---
+
+### 🎴 트레이너 카드 이미지 (총 16장)
+
+#### Phase 1 아이템 (3장) - 턴당 여러 번 사용 가능
+10. **슈퍼 포션** (Super Potion) - 회복 포션 이미지
+11. **브롤 볼** (Brawl Ball) - 브롤스타즈 공 이미지
+12. **스피드 부츠** (Speed Boots) - 빠른 부츠 이미지
+
+#### Phase 1 서포터 (3장) - 턴당 1회만 사용 가능
+13. **게일의 보급** (Gale's Supply) - 게일이 카드를 보급하는 이미지
+14. **타라의 포탈** (Tara's Portal) - 타라의 차원 포탈 이미지
+15. **크로우의 독** (Crow's Poison) - 크로우의 독 단검 이미지
+
+#### Phase 2 아이템 (5장)
+16. **브롤 박스** (Brawl Box) - 보라색 보물상자
+17. **메가 박스** (Mega Box) - 골든 메가 상자
+18. **파워 큐브** (Power Cube) - 파란 에너지 큐브
+19. **실드 기어** (Shield Gear) - 방패와 기어
+20. **교체 스위치** (Instant Switch) - 교체 스위치
+
+#### Phase 2 서포터 (5장)
+21. **스튜의 전략** (Stu's Strategy) - 스튜가 전략을 짜는 모습
+22. **프랭크의 방어** (Frank's Defense) - 프랭크의 방어 자세
+23. **맥스의 돌격** (Max's Rush) - 맥스의 돌진 모습
+24. **진의 재활용** (Gene's Recycle) - 진의 마법 재활용
+25. **스파이크의 재생** (Spike's Regen) - 스파이크의 치유
+
+---
+
+### 🎨 UI 아이콘 (3장)
+16. **카드 뒷면** (Card Back) - 브롤스타즈 로고 디자인
+17. **브롤 에너지 아이콘** - 파란색 다이아몬드 (🔷)
+18. **무색 에너지 아이콘** - 흰색 원 (⚪)
+
+---
+
+## 🎨 이미지 생성 프롬프트 (나노바나나 MCP 사용)
+
+### 공통 스타일 가이드라인
+- **아트 스타일**: Cute, cartoon, chibi, colorful, friendly
+- **비율**: 1:1 (정사각형)
+- **품질**: high
+- **일관성**: 모든 브롤러는 동일한 카툰 스타일 유지
+
+---
+
+### 🃏 브롤러 카드 프롬프트
+
+#### 1. Shelly (셸리)
+```
+파일명: brawler_shelly.png
+
+프롬프트:
+Cute chibi style character, Shelly from Brawl Stars, blonde ponytail hair, red bandana, holding double-barrel shotgun, pink shirt, confident pose, colorful cartoon style, friendly expression, simple background, 1:1 square ratio
+```
+
+#### 2. Colt (콜트)
+```
+파일명: brawler_colt.png
+
+프롬프트:
+Cute chibi style character, Colt from Brawl Stars, blue hair with star accessory, white vest, dual pistols, cowboy sheriff style, smiling confident pose, colorful cartoon style, friendly expression, simple background, 1:1 square ratio
+```
+
+#### 3. Nita (니타)
+```
+파일명: brawler_nita.png
+
+프롬프트:
+Cute chibi style character, Nita from Brawl Stars, brown bear costume with red details, holding wooden staff, cute friendly expression, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 4. Poco (포코)
+```
+파일명: brawler_poco.png
+
+프롬프트:
+Cute chibi style character, Poco from Brawl Stars, skeleton mariachi musician, sombrero hat, colorful poncho, holding guitar, friendly happy pose, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 5. Bull (불)
+```
+파일명: brawler_bull.png
+
+프롬프트:
+Cute chibi style character, Bull from Brawl Stars, muscular build, red bandana, sleeveless shirt, holding shotgun, tough but friendly expression, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 6. Bandita Shelly (반디타 셸리)
+```
+파일명: brawler_bandita_shelly.png
+
+프롬프트:
+Cute chibi style character, Bandita Shelly from Brawl Stars, cowgirl bandit theme, blonde ponytail with black bandana mask, red vest, holding shotgun, cool badass pose, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 7. Royal Agent Colt (로얄 에이전트 콜트)
+```
+파일명: brawler_royal_agent_colt.png
+
+프롬프트:
+Cute chibi style character, Royal Agent Colt from Brawl Stars, secret agent in tuxedo, blue hair with sunglasses, dual pistols, spy 007 theme, cool professional pose, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 8. Serenade Poco (세레나데 포코)
+```
+파일명: brawler_serenade_poco.png
+
+프롬프트:
+Cute chibi style character, Serenade Poco from Brawl Stars, elegant skeleton mariachi with fancy blue suit, large decorated sombrero, holding ornate guitar, classy musical pose, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 9. Bruce (브루스)
+```
+파일명: brawler_bruce.png
+
+프롬프트:
+Cute chibi style character, Bruce the bear from Brawl Stars, small brown teddy bear, red scarf, cute friendly expression, adorable pose, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 10. Edgar (에드거)
+```
+파일명: brawler_edgar.png
+
+프롬프트:
+Cute chibi style character, Edgar from Brawl Stars, black hoodie with red scarf, energetic punching pose, teenage boy, determined expression, fists ready, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 11. Mortis (모티스)
+```
+파일명: brawler_mortis.png
+
+프롬프트:
+Cute chibi style character, Mortis from Brawl Stars, vampire theme, black top hat, purple coat, holding shovel, mysterious dashing pose, bat wings effect, dark purple colors, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 12. Byron (바이런)
+```
+파일명: brawler_byron.png
+
+프롬프트:
+Cute chibi style character, Byron from Brawl Stars, alchemist with white coat, round glasses, holding green healing potion and purple poison bottle, dual healer-damage dealer concept, elderly friendly scientist, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 13. Bea (비)
+```
+파일명: brawler_bea.png
+
+프롬프트:
+Cute chibi style character, Bea from Brawl Stars, bee theme, yellow and black striped outfit, cute bee antennae, holding sniper rifle, honeycomb pattern details, cheerful expression, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 14. Bibi (비비)
+```
+파일명: brawler_bibi.png
+
+프롬프트:
+Cute chibi style character, Bibi from Brawl Stars, sporty girl with pink and purple baseball outfit, holding baseball bat, bubble gum bubble, cool confident pose, energetic expression, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 15. Piper (파이퍼)
+```
+파일명: brawler_piper.png
+
+프롬프트:
+Cute chibi style character, Piper from Brawl Stars, elegant lady sniper, pink Victorian dress with frills, fancy hat with feather, holding umbrella rifle, graceful pose, sophisticated expression, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 16. Dynamike (다이너마이크)
+```
+파일명: brawler_dynamike.png
+
+프롬프트:
+Cute chibi style character, Dynamike from Brawl Stars, old miner with white beard, yellow helmet with lamp, holding TNT dynamite sticks, explosive barrels nearby, friendly crazy smile, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 17. Barley (발리)
+```
+파일명: brawler_barley.png
+
+프롬프트:
+Cute chibi style character, Barley from Brawl Stars, robot bartender, mustache, bow tie, holding cocktail bottles, friendly service pose, shiny metallic body with tavern theme, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 18. Jessie (제시)
+```
+파일명: brawler_jessie.png
+
+프롬프트:
+Cute chibi style character, Jessie from Brawl Stars, young girl engineer, red hair with ponytail, blue overalls, holding electric shock gun, friendly smart expression, wrench tool accessory, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 19. Penny (페니)
+```
+파일명: brawler_penny.png
+
+프롬프트:
+Cute chibi style character, Penny from Brawl Stars, pirate girl theme, red hair with pirate hat, blue pirate outfit, holding cannon bag, gold coins scattered, adventurous cheerful expression, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 20. Scrappy (스크래피)
+```
+파일명: brawler_scrappy.png
+
+프롬프트:
+Cute chibi style character, Scrappy turret from Brawl Stars, small robotic turret, blue metal body, laser gun, mechanical cute appearance, friendly robot design, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+#### 21. Old Lobber (올드 로버)
+```
+파일명: brawler_old_lobber.png
+
+프롬프트:
+Cute chibi style character, Old Lobber cannon from Brawl Stars, pirate cannon with wooden wheels, rusty metal details, cannonballs nearby, jolly roger flag, friendly mechanical design, colorful cartoon style, simple background, 1:1 square ratio
+```
+
+---
+
+### 🎴 트레이너 카드 프롬프트
+
+#### 10. 슈퍼 포션 (Super Potion)
+```
+파일명: trainer_super_potion.png
+
+프롬프트:
+Cute cartoon style item illustration, glowing pink healing potion bottle, sparkles and magic effect, heart-shaped bubbles, colorful friendly design, simple background, 1:1 square ratio, game card art style
+```
+
+#### 11. 브롤 볼 (Brawl Ball)
+```
+파일명: trainer_brawl_ball.png
+
+프롬프트:
+Cute cartoon style item illustration, Brawl Stars soccer ball, blue and purple colors, star pattern, dynamic motion effect, colorful friendly design, simple background, 1:1 square ratio, game card art style
+```
+
+#### 12. 스피드 부츠 (Speed Boots)
+```
+파일명: trainer_speed_boots.png
+
+프롬프트:
+Cute cartoon style item illustration, red and white speed boots, motion lines and wind effect, lightning bolts, energetic fast feeling, colorful friendly design, simple background, 1:1 square ratio, game card art style
+```
+
+#### 13. 게일의 보급 (Gale's Supply)
+```
+파일명: trainer_gales_supply.png
+
+프롬프트:
+Cute chibi style character, Gale from Brawl Stars, elderly janitor with white mustache, blue uniform, holding snow blower and supply box, giving cards with friendly smile, colorful cartoon style, simple background, 1:1 square ratio, game card art style
+```
+
+#### 14. 타라의 포탈 (Tara's Portal)
+```
+파일명: trainer_taras_portal.png
+
+프롬프트:
+Cute chibi style character, Tara from Brawl Stars, mysterious fortune teller, purple hood and cloak, one glowing eye, creating swirling purple portal with tarot cards, mystical aura, colorful cartoon style, simple background, 1:1 square ratio, game card art style
+```
+
+#### 15. 크로우의 독 (Crow's Poison)
+```
+파일명: trainer_crows_poison.png
+
+프롬프트:
+Cute chibi style character, Crow from Brawl Stars, crow-themed assassin with black hood, sharp beak mask, throwing purple poison daggers, cool dangerous pose, dark but colorful cartoon style, simple background, 1:1 square ratio, game card art style
+```
+
+#### 16. 브롤 박스 (Brawl Box)
+```
+파일명: trainer_brawl_box.png
+
+프롬프트:
+Cute cartoon style item illustration, glowing purple brawl box with star pattern, golden lock, treasure chest design, magical sparkles effect, colorful friendly design, simple background, 1:1 square ratio, game card art style
+```
+
+#### 17. 메가 박스 (Mega Box)
+```
+파일명: trainer_mega_box.png
+
+프롬프트:
+Cute cartoon style item illustration, large golden mega box with star and crown decorations, rainbow glow effect, premium treasure design, epic sparkles, colorful friendly design, simple background, 1:1 square ratio, game card art style
+```
+
+#### 18. 파워 큐브 (Power Cube)
+```
+파일명: trainer_power_cube.png
+
+프롬프트:
+Cute cartoon style item illustration, glowing blue power cube, electric energy effect, geometric cube design, lightning bolts, vibrant energy aura, colorful friendly design, simple background, 1:1 square ratio, game card art style
+```
+
+#### 19. 실드 기어 (Shield Gear)
+```
+파일명: trainer_shield_gear.png
+
+프롬프트:
+Cute cartoon style item illustration, blue shield with gear mechanism, metallic armor design, protective barrier effect, glowing energy shield, colorful friendly design, simple background, 1:1 square ratio, game card art style
+```
+
+#### 20. 교체 스위치 (Instant Switch)
+```
+파일명: trainer_instant_switch.png
+
+프롬프트:
+Cute cartoon style item illustration, red and green switch button, swap arrows effect, dynamic exchange symbol, motion lines, colorful friendly design, simple background, 1:1 square ratio, game card art style
+```
+
+#### 21. 스튜의 전략 (Stu's Strategy)
+```
+파일명: trainer_stus_strategy.png
+
+프롬프트:
+Cute chibi style character, Stu from Brawl Stars, stunt driver with helmet, holding strategy map and cards, confident planning pose, purple and white racing suit, colorful cartoon style, simple background, 1:1 square ratio, game card art style
+```
+
+#### 22. 프랭크의 방어 (Frank's Defense)
+```
+파일명: trainer_franks_defense.png
+
+프롬프트:
+Cute chibi style character, Frank from Brawl Stars, large muscular mummy, blue bandages, holding giant hammer, protective defensive stance, shield aura effect, colorful cartoon style, simple background, 1:1 square ratio, game card art style
+```
+
+#### 23. 맥스의 돌격 (Max's Rush)
+```
+파일명: trainer_maxs_rush.png
+
+프롬프트:
+Cute chibi style character, Max from Brawl Stars, energetic runner girl, red and white superhero outfit, speed trails effect, dynamic charging pose, lightning energy, colorful cartoon style, simple background, 1:1 square ratio, game card art style
+```
+
+#### 24. 진의 재활용 (Gene's Recycle)
+```
+파일명: trainer_genes_recycle.png
+
+프롬프트:
+Cute chibi style character, Gene from Brawl Stars, magic lamp genie, purple mystical robe, holding glowing cards, magical recycling aura, smoke effect, colorful cartoon style, simple background, 1:1 square ratio, game card art style
+```
+
+#### 25. 스파이크의 재생 (Spike's Regen)
+```
+파일명: trainer_spikes_regen.png
+
+프롬프트:
+Cute chibi style character, Spike from Brawl Stars, cute cactus with flower, green body with pink flower on head, healing glow effect, nature regeneration aura, hearts and sparkles, colorful cartoon style, simple background, 1:1 square ratio, game card art style
+```
+
+---
+
+### 🎨 UI 아이콘 프롬프트
+
+#### 16. 카드 뒷면 (Card Back)
+```
+파일명: ui_card_back.png
+
+프롬프트:
+Brawl Stars themed card back design, purple and blue gradient background, star pattern, glowing logo, game card art style, symmetrical design, vibrant colors, 1:1 square ratio
+```
+
+#### 17. 브롤 에너지 아이콘 (Brawl Energy)
+```
+파일명: ui_energy_brawl.png
+
+프롬프트:
+Glowing blue diamond icon, crystal energy gem, bright light effect, simple clean design, transparent background if possible, game UI icon style, 1:1 square ratio
+```
+
+#### 18. 무색 에너지 아이콘 (Colorless Energy)
+```
+파일명: ui_energy_colorless.png
+
+프롬프트:
+Glowing white circle icon, neutral energy orb, soft light effect, simple clean design, transparent background if possible, game UI icon style, 1:1 square ratio
+```
+
+---
+
+## 📐 이미지 크기 조정 방법
+
+### 나노바나나 생성 후 처리:
+1. **나노바나나로 생성**: aspect_ratio="1:1"로 생성
+2. **CSS로 크기 조정**: 브라우저에서 자동 리사이징 (추천)
+   ```css
+   .card-image {
+       width: 110px;
+       height: 110px;
+       object-fit: cover;
+   }
+   ```
+
+3. **외부 도구 사용 (선택사항)**:
+   - Python Pillow: `image.resize((200, 200))`
+   - 온라인 도구: tinypng.com, squoosh.app 등
+
+---
+
+## 📁 이미지 파일 저장 위치
+
+```
+brawal_cardgame/
+└── assets/
+    ├── brawlers/
+    │   ├── brawler_shelly.png
+    │   ├── brawler_colt.png
+    │   ├── brawler_nita.png
+    │   ├── brawler_poco.png
+    │   ├── brawler_bull.png
+    │   ├── brawler_bandita_shelly.png
+    │   ├── brawler_royal_agent_colt.png
+    │   ├── brawler_serenade_poco.png
+    │   ├── brawler_bruce.png
+    │   ├── brawler_edgar.png
+    │   ├── brawler_mortis.png
+    │   ├── brawler_byron.png
+    │   ├── brawler_bea.png
+    │   ├── brawler_bibi.png
+    │   ├── brawler_piper.png
+    │   ├── brawler_dynamike.png
+    │   ├── brawler_barley.png
+    │   ├── brawler_jessie.png
+    │   ├── brawler_penny.png
+    │   ├── brawler_scrappy.png
+    │   └── brawler_old_lobber.png
+    ├── trainers/
+    │   ├── trainer_super_potion.png
+    │   ├── trainer_brawl_ball.png
+    │   ├── trainer_speed_boots.png
+    │   ├── trainer_gales_supply.png
+    │   ├── trainer_taras_portal.png
+    │   ├── trainer_crows_poison.png
+    │   ├── trainer_brawl_box.png
+    │   ├── trainer_mega_box.png
+    │   ├── trainer_power_cube.png
+    │   ├── trainer_shield_gear.png
+    │   ├── trainer_instant_switch.png
+    │   ├── trainer_stus_strategy.png
+    │   ├── trainer_franks_defense.png
+    │   ├── trainer_maxs_rush.png
+    │   ├── trainer_genes_recycle.png
+    │   └── trainer_spikes_regen.png
+    └── ui/
+        ├── ui_card_back.png
+        ├── ui_energy_brawl.png
+        └── ui_energy_colorless.png
+```
+
+---
+
+## 🚀 이미지 생성 순서
+
+### Phase 1-1: 핵심 브롤러 (우선순위 높음)
+1. Shelly
+2. Colt
+3. Nita
+4. Poco
+5. Bull
+
+### Phase 1-2: 진화 & 토큰
+6. Bandita Shelly
+7. Royal Agent Colt
+8. Serenade Poco
+9. Bruce
+
+### Phase 1-3: 트레이너 카드
+10-15. 모든 트레이너 카드 (6장)
+
+### Phase 1-4: UI 요소
+16-18. 카드 뒷면, 에너지 아이콘
+
+### Phase 2-1: 신규 브롤러 (10장)
+19. Edgar (암살자)
+20. Mortis (암살자)
+21. Byron (서포터)
+22. Bea (저격수)
+23. Bibi (전사)
+24. Piper (저격수)
+25. Dynamike (폭발물)
+26. Barley (제어)
+27. Jessie (소환사)
+28. Penny (소환사)
+
+### Phase 2-2: 신규 토큰 (2장)
+29. Scrappy (제시의 터렛)
+30. Old Lobber (페니의 캐논)
+
+### Phase 2-3: 신규 트레이너 (10장)
+31. 브롤 박스 (아이템)
+32. 메가 박스 (아이템)
+33. 파워 큐브 (아이템)
+34. 실드 기어 (아이템)
+35. 교체 스위치 (아이템)
+36. 스튜의 전략 (서포터)
+37. 프랭크의 방어 (서포터)
+38. 맥스의 돌격 (서포터)
+39. 진의 재활용 (서포터)
+40. 스파이크의 재생 (서포터)
+
+---
+
+## 💡 팁
+- 모든 브롤러는 **동일한 카툰 스타일** 유지
+- **간단한 배경** 사용 (카드에서 잘 보이도록)
+- **밝고 화려한 색상** 사용
+- 나노바나나 `optimize_prompt: true` 사용 권장

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>브롤스타즈 카드게임</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 게임 메인 컨테이너 -->
+    <div class="game-container">
+        <!-- 좌측: 덱 영역 -->
+        <div class="side-area left-side">
+            <div class="deck-pile" id="player-deck-pile">
+                <div class="pile-count" id="player-deck-count">20</div>
+                <div class="pile-label">덱</div>
+            </div>
+            <div class="discard-pile" id="player-discard-pile">
+                <div class="pile-count" id="player-discard-count">0</div>
+                <div class="pile-label">버림</div>
+            </div>
+        </div>
+
+        <!-- 중앙: 게임 필드 -->
+        <div class="field-container">
+            <!-- 상대 영역 (상단) -->
+            <div class="opponent-area">
+                <div class="player-info-compact">
+                    <span class="player-name">AI</span>
+                    <span class="info-item">덱: <span id="ai-deck-count">20</span></span>
+                    <span class="info-item">🔷 <span id="ai-energy-count">0</span></span>
+                    <span class="info-item prizes">점수: <span id="ai-prizes">0 / 3</span></span>
+                </div>
+
+                <!-- AI 벤치 (작게) -->
+                <div class="bench-zone compact" id="ai-bench">
+                    <!-- AI 벤치 브롤러들 -->
+                </div>
+
+                <!-- AI 배틀존 (상대적으로 작음) -->
+                <div class="battle-zone opponent-battle" id="ai-battle">
+                    <!-- AI 배틀 브롤러 -->
+                </div>
+            </div>
+
+            <!-- 플레이어 영역 (중앙~하단) -->
+            <div class="player-area-main">
+                <!-- 플레이어 배틀존 (크게) -->
+                <div class="battle-zone player-battle" id="player-battle">
+                    <!-- 플레이어 배틀 브롤러 -->
+                </div>
+
+                <!-- 플레이어 벤치 (작게) -->
+                <div class="bench-zone" id="player-bench">
+                    <!-- 플레이어 벤치 브롤러들 -->
+                </div>
+
+                <!-- 플레이어 정보 -->
+                <div class="player-info-compact">
+                    <span class="player-name">플레이어</span>
+                    <span class="info-item">덱: <span id="player-deck-count">20</span></span>
+                    <span class="info-item">🔷 <span id="player-energy-count">0</span></span>
+                    <span class="info-item prizes">점수: <span id="player-prizes">0 / 3</span></span>
+                </div>
+            </div>
+
+            <!-- 손패 토글 버튼 -->
+            <div class="hand-toggle-btn" id="hand-toggle-btn">
+                <span>손패 보기</span>
+                <span class="hand-count" id="hand-count">5</span>
+            </div>
+        </div>
+
+        <!-- 우측: 컨트롤 영역 -->
+        <div class="side-area right-side">
+            <div class="turn-info" id="turn-info">턴 1<br>플레이어</div>
+
+            <!-- 에너지존 (드래그 가능) -->
+            <div class="energy-zone-panel" id="player-energy-zone">
+                <div class="energy-zone-label">에너지존</div>
+                <div class="energy-items" id="energy-items">
+                    <!-- 에너지 아이템들 -->
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button id="btn-end-turn" onclick="window.Game.endTurn()">턴 종료</button>
+                <button id="btn-retreat" onclick="window.Game.retreat()">후퇴</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 손패 패널 (숨김/슬라이드) -->
+    <div class="hand-panel" id="hand-panel">
+        <div class="hand-panel-header">
+            <span>손패</span>
+            <button class="close-btn" id="close-hand-btn">닫기</button>
+        </div>
+        <div class="hand-cards" id="player-hand">
+            <!-- 플레이어 손패 -->
+        </div>
+    </div>
+
+    <!-- 공격 패널 (하단 슬라이드) -->
+    <div class="attack-panel" id="attack-panel">
+        <div class="attack-panel-header">
+            <span class="attacker-name" id="attacker-name">Nita</span>
+            <button class="close-btn" id="close-attack-btn">취소</button>
+        </div>
+        <div class="attack-options" id="attack-options">
+            <!-- 공격 버튼들 동적 생성 -->
+        </div>
+    </div>
+
+    <!-- 메인 메뉴 패널 -->
+    <div class="main-menu-panel active" id="main-menu-panel">
+        <div class="menu-content">
+            <!-- 타이틀 로고 -->
+            <div class="game-logo">
+                <h1 class="game-title">
+                    <span class="title-brawl">BRAWL</span>
+                    <span class="title-tcg">TCG</span>
+                </h1>
+                <p class="game-subtitle">브롤스타즈 트레이딩 카드 게임</p>
+            </div>
+
+            <!-- 메인 버튼들 -->
+            <div class="menu-buttons">
+                <button class="menu-btn primary-btn" id="btn-start-game">
+                    <span class="btn-icon">▶</span>
+                    <span class="btn-text">게임 시작</span>
+                </button>
+                <button class="menu-btn secondary-btn" id="btn-deck-builder">
+                    <span class="btn-icon">🎴</span>
+                    <span class="btn-text">덱 빌더</span>
+                </button>
+                <button class="menu-btn secondary-btn" id="btn-how-to-play">
+                    <span class="btn-icon">📖</span>
+                    <span class="btn-text">게임 방법</span>
+                </button>
+            </div>
+
+            <!-- 게임 정보 -->
+            <div class="game-info">
+                <div class="info-card">
+                    <div class="info-icon">🎯</div>
+                    <div class="info-text">
+                        <h3>승리 조건</h3>
+                        <p>상대 브롤러를 처치하여 3점 먼저 획득</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">🃏</div>
+                    <div class="info-text">
+                        <h3>덱 구성</h3>
+                        <p>20장 (브롤러 + 트레이너)</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">⚡</div>
+                    <div class="info-text">
+                        <h3>에너지 시스템</h3>
+                        <p>매 턴 자동 생성, 수동 부착</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 버전 정보 -->
+            <div class="version-info">
+                <p>Phase 2-3 | Pokemon TCG Pocket Style</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 덱 빌더 패널 -->
+    <div class="deckbuilder-panel" id="deckbuilder-panel">
+        <div class="deckbuilder-header">
+            <div class="deckbuilder-title-section">
+                <h2>덱 빌더</h2>
+                <p class="deck-count-display">현재 덱: <span id="deck-count">0</span> / 20</p>
+            </div>
+            <button class="back-to-menu-btn" id="back-to-menu-btn">
+                <span class="btn-icon">🏠</span>
+                <span class="btn-text">메인 메뉴로</span>
+            </button>
+        </div>
+
+        <!-- 프리셋 덱 버튼 -->
+        <div class="preset-buttons">
+            <button class="preset-btn" onclick="window.DeckBuilder.loadPreset('default')">기본 덱</button>
+            <button class="preset-btn" onclick="window.DeckBuilder.loadPreset('balanced')">밸런스</button>
+            <button class="preset-btn" onclick="window.DeckBuilder.loadPreset('aggro')">공격형</button>
+            <button class="preset-btn" onclick="window.DeckBuilder.loadPreset('control')">컨트롤</button>
+        </div>
+
+        <!-- 현재 덱 구성 -->
+        <div class="current-deck-section">
+            <h3>현재 덱 구성</h3>
+            <div class="current-deck" id="current-deck">
+                <!-- 덱 카드 목록 동적 생성 -->
+            </div>
+        </div>
+
+        <!-- 카드 선택 영역 -->
+        <div class="card-pools">
+            <div class="pool-section">
+                <h3>브롤러 카드</h3>
+                <div class="card-grid" id="brawler-grid">
+                    <!-- 브롤러 카드 그리드 동적 생성 -->
+                </div>
+            </div>
+            <div class="pool-section">
+                <h3>트레이너 카드</h3>
+                <div class="card-grid" id="trainer-grid">
+                    <!-- 트레이너 카드 그리드 동적 생성 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 게임 시작 버튼 -->
+        <button class="start-game-btn" id="start-game-btn" onclick="window.DeckBuilder.startGame()">
+            게임 시작
+        </button>
+    </div>
+
+    <!-- 오버레이 (패널 배경) -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- JavaScript 로드 (순서 중요) -->
+    <script src="js/cards.js"></script>
+    <script src="js/energy.js"></script>
+    <script src="js/effects.js"></script>
+    <script src="js/deckbuilder.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/ai.js"></script>
+
+    <!-- 게임 시작 -->
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            try {
+                console.log('앱 초기화 시작...');
+
+                // 덱 빌더 초기화 (백그라운드)
+                if (typeof window.DeckBuilder !== 'undefined') {
+                    window.DeckBuilder.init();
+                    console.log('덱 빌더 초기화 완료');
+                } else {
+                    console.error('DeckBuilder를 찾을 수 없습니다');
+                }
+
+                // 메뉴 버튼 이벤트
+                document.getElementById('btn-start-game').addEventListener('click', function() {
+                    // 메뉴 닫고 바로 게임 시작
+                    document.getElementById('main-menu-panel').classList.remove('active');
+                    if (typeof window.DeckBuilder !== 'undefined') {
+                        window.DeckBuilder.startGame();
+                    }
+                });
+
+                document.getElementById('btn-deck-builder').addEventListener('click', function() {
+                    // 메뉴 닫고 덱 빌더 열기
+                    document.getElementById('main-menu-panel').classList.remove('active');
+                    document.getElementById('deckbuilder-panel').classList.add('active');
+                    document.getElementById('overlay').classList.add('active');
+                });
+
+                document.getElementById('btn-how-to-play').addEventListener('click', function() {
+                    alert(
+                        '🎮 브롤스타즈 TCG 게임 방법\n\n' +
+                        '🎯 승리 조건:\n상대 브롤러를 처치하여 3점 먼저 획득\n\n' +
+                        '🃏 게임 진행:\n1. 매 턴 카드 드로우 (선공 1턴 제외)\n' +
+                        '2. 에너지 자동 생성 → 브롤러에 수동 부착\n' +
+                        '3. 브롤러 배치 (배틀존 1개, 벤치 3개)\n' +
+                        '4. 트레이너 카드 사용\n' +
+                        '5. 공격 (배치한 턴은 불가)\n\n' +
+                        '⭐ 진화:\n기본 브롤러 → 스킨 브롤러 (HP/공격력 상승)\n\n' +
+                        '💡 팁:\n- 에너지는 소모되지 않고 유지됩니다\n' +
+                        '- 후퇴 시 에너지 비용이 필요합니다\n' +
+                        '- 진화 카드는 기본 카드가 필요합니다'
+                    );
+                });
+
+                // 덱 빌더에서 메인 메뉴로 돌아가기
+                document.getElementById('back-to-menu-btn').addEventListener('click', function() {
+                    // 덱 빌더 닫고 메인 메뉴 열기
+                    document.getElementById('deckbuilder-panel').classList.remove('active');
+                    document.getElementById('overlay').classList.remove('active');
+                    document.getElementById('main-menu-panel').classList.add('active');
+                });
+
+                // 손패 토글 이벤트
+                document.getElementById('hand-toggle-btn').addEventListener('click', function() {
+                    document.getElementById('hand-panel').classList.add('active');
+                    document.getElementById('overlay').classList.add('active');
+                });
+
+                // 손패 닫기
+                document.getElementById('close-hand-btn').addEventListener('click', function() {
+                    document.getElementById('hand-panel').classList.remove('active');
+                    document.getElementById('overlay').classList.remove('active');
+                });
+
+                // 공격 패널 닫기
+                document.getElementById('close-attack-btn').addEventListener('click', function() {
+                    document.getElementById('attack-panel').classList.remove('active');
+                    document.getElementById('overlay').classList.remove('active');
+                });
+
+                // 오버레이 클릭 시 모든 패널 닫기 (메뉴/덱빌더 제외)
+                document.getElementById('overlay').addEventListener('click', function() {
+                    const mainMenuPanel = document.getElementById('main-menu-panel');
+                    const deckbuilderPanel = document.getElementById('deckbuilder-panel');
+                    const handPanel = document.getElementById('hand-panel');
+                    const attackPanel = document.getElementById('attack-panel');
+
+                    // 메뉴나 덱 빌더가 활성화되어 있으면 오버레이 클릭 무시
+                    if ((mainMenuPanel && mainMenuPanel.classList.contains('active')) ||
+                        (deckbuilderPanel && deckbuilderPanel.classList.contains('active'))) {
+                        return;
+                    }
+
+                    // 다른 패널들 닫기
+                    if (handPanel) handPanel.classList.remove('active');
+                    if (attackPanel) attackPanel.classList.remove('active');
+                    this.classList.remove('active');
+                });
+
+                console.log('앱 초기화 완료!');
+            } catch (error) {
+                console.error('앱 초기화 오류:', error);
+                alert('로딩 중 오류가 발생했습니다: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

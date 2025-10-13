@@ -1,0 +1,519 @@
+===========================================
+Phase 2-3: 덱 빌더 시스템 구현 계획
+===========================================
+
+## 📋 프로젝트 개요
+
+### 목적
+- 게임 시작 전 플레이어가 자유롭게 덱을 구성할 수 있는 시스템 구현
+- Pokemon TCG Pocket 스타일의 직관적인 덱 빌더 UI 제공
+- 덱 저장/불러오기 기능으로 다양한 전략 실험 가능
+
+### 현재 상태 (Phase 2-2 완료)
+- 브롤러 카드: 15종
+  - 기본: Shelly, Colt, Nita, Poco, Bull, Edgar, Mortis, Byron, Bea, Bibi, Piper, Dynamike, Barley, Jessie, Penny
+  - 진화: Bandita Shelly, Royal Agent Colt, Serenade Poco
+  - 토큰: Bruce, Scrappy, Old Lobber
+- 트레이너 카드: 16종
+  - 아이템 (8종): 슈퍼 포션, 브롤 볼, 스피드 부츠, 브롤 박스, 메가 박스, 파워 큐브, 실드 기어, 교체 스위치
+  - 서포터 (8종): 게일의 보급, 타라의 포탈, 크로우의 독, 스튜의 전략, 프랭크의 방어, 맥스의 돌격, 진의 재활용, 스파이크의 재생
+- **총 카드 풀: 31종**
+
+---
+
+## 🎯 덱 빌더 규칙
+
+### 기본 규칙
+1. **덱 크기**: 정확히 20장
+2. **동일 카드 제한**: 최대 2장 (트리플은 불가)
+3. **기본 브롤러 필수**: 최소 1장 이상 포함 (진화 카드만으로는 불가)
+4. **진화 카드**: 기본 브롤러 없이 진화 카드만 넣을 수 없음 (예: Shelly 없이 Bandita Shelly만 넣기 불가)
+5. **토큰 카드**: 덱에 포함 불가 (Bruce, Scrappy, Old Lobber)
+
+### 유효성 검증 체크리스트
+- [ ] 총 20장 정확히 구성
+- [ ] 동일 카드 2장 이하
+- [ ] 기본 브롤러 최소 1장 포함
+- [ ] 진화 카드가 있으면 해당 기본 브롤러도 포함
+- [ ] 토큰 카드 미포함
+
+---
+
+## 🗂 파일 구조
+
+### 신규 파일
+```
+js/
+└── deckbuilder.js    # 덱 빌더 시스템 (신규)
+```
+
+### 수정 파일
+```
+js/
+├── game.js           # initGame()에서 덱 로드
+└── ui.js             # 덱 빌더 UI 렌더링
+
+index.html            # 덱 빌더 버튼 및 모달 추가
+css/style.css         # 덱 빌더 UI 스타일
+```
+
+---
+
+## 🛠 기술 스택
+
+### deckbuilder.js (신규)
+
+**IIFE 패턴:**
+```javascript
+(function() {
+    'use strict';
+
+    const DEBUG = true;
+    const MAX_DECK_SIZE = 20;
+    const MAX_CARD_COPIES = 2;
+    const STORAGE_KEY = 'brawl_tcg_deck';
+
+    // 덱 빌더 객체
+    const DeckBuilder = {
+        currentDeck: [],  // 현재 구성 중인 덱 [{id, count}, ...]
+
+        // 덱 초기화
+        init: function() { ... },
+
+        // 카드 추가
+        addCard: function(cardId) { ... },
+
+        // 카드 제거
+        removeCard: function(cardId) { ... },
+
+        // 덱 유효성 검증
+        validateDeck: function(deck) {
+            // 20장 체크
+            // 동일 카드 2장 이하 체크
+            // 기본 브롤러 포함 체크
+            // 진화 카드 기본 브롤러 의존성 체크
+            return { valid: true/false, errors: [] };
+        },
+
+        // localStorage 저장
+        saveDeck: function(deckName) {
+            const deckArray = this.convertToArray(this.currentDeck);
+            localStorage.setItem(STORAGE_KEY + '_' + deckName, JSON.stringify(deckArray));
+        },
+
+        // localStorage 불러오기
+        loadDeck: function(deckName) {
+            const data = localStorage.getItem(STORAGE_KEY + '_' + deckName);
+            if (data) {
+                const deckArray = JSON.parse(data);
+                this.currentDeck = this.convertToDeckObject(deckArray);
+                return deckArray;
+            }
+            return null;
+        },
+
+        // 덱 목록 가져오기
+        listDecks: function() {
+            const keys = Object.keys(localStorage);
+            return keys.filter(k => k.startsWith(STORAGE_KEY));
+        },
+
+        // 덱 객체 → 배열 변환 (game.js 호환)
+        convertToArray: function(deckObject) {
+            const deck = [];
+            deckObject.forEach(item => {
+                for (let i = 0; i < item.count; i++) {
+                    deck.push(window.CardDB.get(item.id));
+                }
+            });
+            return deck;
+        },
+
+        // 배열 → 덱 객체 변환
+        convertToDeckObject: function(deckArray) {
+            const deckMap = {};
+            deckArray.forEach(card => {
+                if (!deckMap[card.id]) {
+                    deckMap[card.id] = { id: card.id, count: 0 };
+                }
+                deckMap[card.id].count++;
+            });
+            return Object.values(deckMap);
+        },
+
+        // 프리셋 덱 반환
+        getPreset: function(presetName) {
+            const presets = {
+                'balanced': [
+                    {id: 'shelly', count: 2},
+                    {id: 'bandita_shelly', count: 1},
+                    {id: 'colt', count: 2},
+                    {id: 'nita', count: 2},
+                    {id: 'poco', count: 2},
+                    {id: 'bull', count: 1},
+                    {id: 'super_potion', count: 2},
+                    {id: 'brawl_ball', count: 2},
+                    {id: 'brawl_box', count: 2},
+                    {id: 'gales_supply', count: 2},
+                    {id: 'taras_portal', count: 1},
+                    {id: 'crows_poison', count: 1}
+                ],
+                'aggro': [
+                    {id: 'shelly', count: 2},
+                    {id: 'bandita_shelly', count: 2},
+                    {id: 'edgar', count: 2},
+                    {id: 'bibi', count: 2},
+                    {id: 'bull', count: 2},
+                    {id: 'maxs_rush', count: 2},
+                    {id: 'power_cube', count: 2},
+                    {id: 'instant_switch', count: 2},
+                    {id: 'crows_poison', count: 2},
+                    {id: 'brawl_box', count: 2}
+                ],
+                'control': [
+                    {id: 'poco', count: 2},
+                    {id: 'serenade_poco', count: 2},
+                    {id: 'byron', count: 2},
+                    {id: 'piper', count: 2},
+                    {id: 'jessie', count: 1},
+                    {id: 'penny', count: 1},
+                    {id: 'super_potion', count: 2},
+                    {id: 'spikes_regen', count: 2},
+                    {id: 'franks_defense', count: 2},
+                    {id: 'shield_gear', count: 2},
+                    {id: 'taras_portal', count: 2}
+                ]
+            };
+            return presets[presetName] || null;
+        }
+    };
+
+    // 전역 노출
+    window.DeckBuilder = DeckBuilder;
+
+})();
+```
+
+---
+
+## 🎨 UI 설계 (Pokemon TCG Pocket 스타일)
+
+### 레이아웃
+```
++---------------------------------------+
+|  덱 빌더 (20/20)                  [X] |
++---------------------------------------+
+| [기본 덱] [밸런스] [어그로] [컨트롤] |
+| [덱 저장] [덱 불러오기]               |
++---------------------------------------+
+| 📖 현재 덱                            |
+| +-----------------------------------+ |
+| | Shelly (2/2)           [- 제거]   | |
+| | Colt (1/2)             [+ 추가]   | |
+| | 슈퍼 포션 (2/2)        [- 제거]   | |
+| | ...                                | |
+| +-----------------------------------+ |
++---------------------------------------+
+| 🃏 브롤러 카드 (15종)                 |
+| +-----------------------------------+ |
+| | [Shelly] [Colt] [Nita] [Poco]    | |
+| | [Bull] [Edgar] [Mortis] ...       | |
+| +-----------------------------------+ |
++---------------------------------------+
+| 🎴 트레이너 카드 (16종)               |
+| +-----------------------------------+ |
+| | [슈퍼 포션] [브롤 볼] ...         | |
+| +-----------------------------------+ |
++---------------------------------------+
+| [게임 시작]                           |
++---------------------------------------+
+```
+
+### UI 구성 요소
+1. **헤더**:
+   - 현재 덱 카드 수 표시 (20/20)
+   - 닫기 버튼
+
+2. **프리셋 버튼**:
+   - 기본 덱 (현재 createDefaultDeck)
+   - 밸런스 (브롤러 10, 트레이너 10)
+   - 어그로 (공격형 덱)
+   - 컨트롤 (방어/힐 중심 덱)
+
+3. **덱 관리 버튼**:
+   - 덱 저장 (localStorage)
+   - 덱 불러오기 (localStorage)
+
+4. **현재 덱 영역**:
+   - 덱에 포함된 카드 목록
+   - 각 카드별 개수 표시 (1/2, 2/2)
+   - 카드별 추가/제거 버튼
+
+5. **카드 선택 영역**:
+   - 브롤러 섹션 (15종)
+   - 트레이너 섹션 (16종)
+   - 각 카드 클릭 시 추가
+
+6. **게임 시작 버튼**:
+   - 덱 유효성 검증 후 게임 시작
+
+### CSS 스타일 (style.css 추가)
+```css
+/* 덱 빌더 모달 */
+.deckbuilder-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 800px;
+    height: 80%;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+/* 현재 덱 영역 */
+.current-deck {
+    border: 2px solid #4a90e2;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.deck-card-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    margin: 5px 0;
+    background: #f0f0f0;
+    border-radius: 3px;
+}
+
+/* 카드 선택 그리드 */
+.card-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.card-selection-item {
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.card-selection-item:hover {
+    border-color: #4a90e2;
+    background: #e3f2fd;
+}
+
+.card-selection-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+```
+
+---
+
+## 📝 구현 계획
+
+### Phase 2-3-1: deckbuilder.js 구현 (2시간)
+- [x] IIFE 패턴으로 파일 생성
+- [x] currentDeck 데이터 구조 설계
+- [x] addCard, removeCard 함수
+- [x] validateDeck 함수 (5가지 규칙 검증)
+- [x] saveDeck, loadDeck (localStorage)
+- [x] getPreset (3가지 프리셋 덱)
+- [x] convertToArray, convertToDeckObject
+
+### Phase 2-3-2: UI 구현 (2-3시간)
+- [x] index.html에 덱 빌더 모달 추가
+- [x] style.css에 스타일 추가
+- [x] ui.js에 renderDeckBuilder 함수 추가
+- [x] 카드 선택 그리드 렌더링
+- [x] 현재 덱 목록 렌더링
+- [x] 버튼 이벤트 핸들러
+
+### Phase 2-3-3: game.js 통합 (1시간)
+- [x] initGame() 수정
+- [x] DeckBuilder.loadDeck('default') 호출
+- [x] 덱 없으면 createDefaultDeck() 사용
+- [x] 덱 빌더 모드와 게임 모드 전환
+
+### Phase 2-3-4: 테스트 및 디버깅 (1시간)
+- [x] 덱 유효성 검증 테스트
+- [x] localStorage 저장/불러오기 테스트
+- [x] 프리셋 덱 테스트
+- [x] UI 인터랙션 테스트
+
+**총 예상 시간: 6-7시간**
+
+---
+
+## 🔧 구현 우선순위
+
+### 1단계: 텍스트 기반 UI (Phase 2-3)
+- 버튼 클릭으로 카드 추가/제거
+- 텍스트 목록으로 덱 표시
+- localStorage 저장/불러오기
+- **목표**: 기능 완성 우선
+
+### 2단계: 비주얼 개선 (Phase 3-1, 선택사항)
+- 카드 이미지 표시
+- 드래그 앤 드롭
+- 애니메이션 효과
+- 필터링 및 검색
+- **목표**: UX 개선
+
+---
+
+## 📚 Pokemon TCG Pocket 참고 사항
+
+### 덱 빌더 특징
+1. **카드 풀 필터링**: 타입별, 레어도별 필터
+2. **정렬 기능**: 이름순, 레어도순, 비용순
+3. **검색 기능**: 카드 이름 검색
+4. **덱 통계**: 브롤러/트레이너 비율, 평균 에너지 비용
+5. **자동 추천**: AI가 덱 약점 분석 및 카드 추천
+
+### 현재 구현 범위
+- ✅ 카드 추가/제거
+- ✅ 덱 유효성 검증
+- ✅ localStorage 저장/불러오기
+- ✅ 프리셋 덱 3종
+- ❌ 필터링 (Phase 3-1)
+- ❌ 검색 (Phase 3-1)
+- ❌ 덱 통계 (Phase 3-1)
+- ❌ AI 추천 (Phase 3-2)
+
+---
+
+## 🎯 성공 기준
+
+### 필수 기능
+- [x] 20장 덱 구성 가능
+- [x] 동일 카드 최대 2장 제한
+- [x] 기본 브롤러 필수 포함
+- [x] 덱 저장/불러오기 (localStorage)
+- [x] 프리셋 덱 3종 (밸런스, 어그로, 컨트롤)
+- [x] 덱 유효성 검증 및 에러 메시지
+- [x] 게임 시작 시 커스텀 덱 사용
+
+### 선택 기능 (Phase 3-1)
+- [ ] 카드 이미지 표시
+- [ ] 드래그 앤 드롭
+- [ ] 필터링 및 검색
+- [ ] 덱 통계 표시
+
+---
+
+## 🚀 실행 방법 (구현 후)
+
+### 덱 빌더 열기
+1. 게임 시작 화면에서 "덱 빌더" 버튼 클릭
+2. 카드 선택 영역에서 카드 클릭하여 추가
+3. 현재 덱에서 제거 버튼으로 카드 제거
+4. 20장 완성 후 "게임 시작" 버튼 활성화
+
+### 프리셋 사용
+1. "밸런스", "어그로", "컨트롤" 버튼 클릭
+2. 프리셋 덱 자동 로드
+3. 필요 시 커스터마이징
+4. "덱 저장"으로 나만의 덱 저장
+
+### 덱 관리
+1. "덱 저장" → 덱 이름 입력 → localStorage 저장
+2. "덱 불러오기" → 저장된 덱 목록 → 선택하여 로드
+3. 여러 덱을 저장하여 다양한 전략 실험
+
+---
+
+## 📊 예상 사용 시나리오
+
+### 시나리오 1: 첫 플레이어
+1. 게임 첫 실행
+2. 기본 덱으로 게임 시작
+3. 게임 플레이 후 덱 빌더 열기
+4. "밸런스" 프리셋 사용
+5. 게임 재시작
+
+### 시나리오 2: 숙련 플레이어
+1. 덱 빌더 열기
+2. 커스텀 덱 구성 (특정 전략)
+3. "공격형 덱"으로 저장
+4. 테스트 플레이
+5. 덱 수정 후 재저장
+
+### 시나리오 3: 실험적 플레이어
+1. 여러 프리셋 테스트
+2. 각 프리셋 수정하여 저장 ("밸런스 v2", "어그로 개선")
+3. 덱 간 비교 플레이
+4. 최적 덱 선택
+
+---
+
+## 🐛 예상 이슈 및 해결책
+
+### 이슈 1: localStorage 용량 제한
+- **문제**: localStorage는 5-10MB 제한
+- **해결**: JSON 압축, 오래된 덱 자동 삭제 (최대 10개 보관)
+
+### 이슈 2: 진화 카드 의존성 검증
+- **문제**: Bandita Shelly만 있고 Shelly 없는 경우
+- **해결**: validateDeck에서 진화 카드의 evolvesFrom 체크
+
+### 이슈 3: 모바일 대응
+- **문제**: 작은 화면에서 UI 표시 어려움
+- **해결**: 반응형 CSS, 카드 그리드 자동 조정
+
+### 이슈 4: 덱 초기화 버그
+- **문제**: 덱 빌더에서 게임으로 전환 시 덱 미적용
+- **해결**: game.js의 initGame()에서 DeckBuilder.loadDeck() 호출 확인
+
+---
+
+## 📅 구현 일정 (예상)
+
+| 단계 | 작업 | 예상 시간 | 우선순위 |
+|------|------|-----------|----------|
+| 1 | deckbuilder.js 구현 | 2시간 | 높음 |
+| 2 | UI 기본 구현 (index.html, style.css) | 2시간 | 높음 |
+| 3 | ui.js 렌더링 함수 | 1시간 | 높음 |
+| 4 | game.js 통합 | 1시간 | 높음 |
+| 5 | 테스트 및 디버깅 | 1시간 | 높음 |
+| 6 | 카드 이미지 추가 (선택) | 2시간 | 중간 |
+| 7 | 드래그 앤 드롭 (선택) | 3시간 | 낮음 |
+
+**최소 구현 시간 (1-5단계): 7시간**
+**전체 구현 시간 (1-7단계): 12시간**
+
+---
+
+## ✅ 체크리스트
+
+### Phase 2-3 완료 기준
+- [x] deckbuilder_phase2-3_plan.txt 작성
+- [ ] deckbuilder.js 구현
+- [ ] index.html 덱 빌더 모달 추가
+- [ ] style.css 스타일 추가
+- [ ] ui.js renderDeckBuilder 함수
+- [ ] game.js initGame 수정
+- [ ] 브라우저 테스트 완료
+- [ ] 덱 저장/불러오기 테스트
+- [ ] 프리셋 덱 테스트
+
+---
+
+마지막 업데이트: Phase 2-3 계획 수립
+다음 단계: deckbuilder.js 구현 시작
