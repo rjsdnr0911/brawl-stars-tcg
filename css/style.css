@@ -533,13 +533,16 @@ button:disabled {
     border-radius: 8px;
     padding: 5px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    transition: all 0.6s ease;
     display: flex;
     flex-direction: column;
     gap: 3px;
     position: relative;
     cursor: pointer;
     overflow: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    will-change: transform;
 }
 
 .card-image-container {
@@ -549,6 +552,8 @@ button:disabled {
     overflow: hidden;
     background: #f0f0f0;
     flex-shrink: 0;
+    position: relative;
+    z-index: 2;
 }
 
 .card-image {
@@ -563,11 +568,83 @@ button:disabled {
     flex-direction: column;
     gap: 3px;
     flex: 1;
+    position: relative;
+    z-index: 2;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    transform: perspective(1000px) rotateY(10deg) rotateX(-5deg) translateY(-15px) scale(1.05);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(102, 126, 234, 0.4);
+}
+
+/* 카드 광택 효과 (홀로그램 느낌) */
+.card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.4) 50%, transparent 60%);
+    animation: shine 8s infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes shine {
+    0%, 100% {
+        transform: translateX(-100%) translateY(-100%) rotate(30deg);
+    }
+    50% {
+        transform: translateX(100%) translateY(100%) rotate(30deg);
+    }
+}
+
+/* 레어리티별 카드 글로우 효과 */
+.card.rarity-rare {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.card.rarity-rare:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.8);
+}
+
+.card.rarity-epic {
+    border: 2px solid #9333ea;
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.6), 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.card.rarity-epic:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(147, 51, 234, 0.8);
+}
+
+.card.rarity-mythic {
+    border: 2px solid #d946ef;
+    box-shadow: 0 0 20px rgba(217, 70, 239, 0.6), 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.card.rarity-mythic:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(217, 70, 239, 0.8);
+}
+
+.card.rarity-legendary {
+    border: 2px solid #fb923c;
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.7), 0 3px 6px rgba(0, 0, 0, 0.2);
+    animation: legendaryPulse 2s ease-in-out infinite;
+}
+
+.card.rarity-legendary:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 50px rgba(251, 146, 60, 1);
+}
+
+@keyframes legendaryPulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(251, 146, 60, 0.7), 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(251, 146, 60, 1), 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
 }
 
 .card.can-attack {
@@ -1248,4 +1325,264 @@ button:disabled {
     margin: 0;
     font-weight: 600;
     letter-spacing: 1px;
+}
+
+/* ===== 공격 애니메이션 ===== */
+
+/* 공격자 줌 애니메이션 */
+@keyframes attackerZoom {
+    0% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(1.2);
+    }
+    60% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.card.attacking {
+    animation: attackerZoom 0.6s ease;
+    z-index: 100;
+    border-color: #f39c12;
+    box-shadow: 0 0 30px rgba(243, 156, 18, 0.8);
+}
+
+/* 피격자 흔들림 애니메이션 */
+@keyframes damageShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+.card.taking-damage {
+    animation: damageShake 0.5s ease;
+    border-color: #e74c3c;
+    box-shadow: 0 0 25px rgba(231, 76, 60, 0.8);
+}
+
+/* 피격 플래시 효과 */
+@keyframes damageFlash {
+    0%, 100% {
+        background: white;
+    }
+    50% {
+        background: #ffcccb;
+    }
+}
+
+.card.flash-damage {
+    animation: damageFlash 0.3s ease;
+}
+
+/* 데미지 숫자 표시 */
+.damage-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    font-weight: 900;
+    color: #e74c3c;
+    text-shadow:
+        -2px -2px 0 white,
+        2px -2px 0 white,
+        -2px 2px 0 white,
+        2px 2px 0 white,
+        0 0 20px rgba(231, 76, 60, 0.8);
+    z-index: 200;
+    pointer-events: none;
+    animation: damageNumberFloat 1.2s ease-out forwards;
+}
+
+@keyframes damageNumberFloat {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -70%) scale(1.2);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -100%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -120%) scale(0.8);
+    }
+}
+
+/* 힐 숫자 표시 (초록색) */
+.heal-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 42px;
+    font-weight: 900;
+    color: #27ae60;
+    text-shadow:
+        -2px -2px 0 white,
+        2px -2px 0 white,
+        -2px 2px 0 white,
+        2px 2px 0 white,
+        0 0 20px rgba(39, 174, 96, 0.8);
+    z-index: 200;
+    pointer-events: none;
+    animation: healNumberFloat 1.2s ease-out forwards;
+}
+
+@keyframes healNumberFloat {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -30%) scale(1.2);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -10%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, 10%) scale(0.8);
+    }
+}
+
+/* ===== 동전 던지기 애니메이션 ===== */
+
+/* 동전 던지기 오버레이 */
+.coinflip-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.coinflip-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.coinflip-title {
+    font-size: 36px;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    margin-bottom: 30px;
+    animation: titlePulse 1s ease infinite;
+}
+
+@keyframes titlePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.coinflip-container {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+/* 동전 아이템 */
+.coin-item {
+    perspective: 1000px;
+}
+
+.coin {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    border: 5px solid #ffaa00;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 900;
+    position: relative;
+    animation: coinFlip 1s ease-in-out;
+    transform-style: preserve-3d;
+}
+
+@keyframes coinFlip {
+    0% {
+        transform: rotateY(0deg) translateY(0);
+    }
+    50% {
+        transform: rotateY(1800deg) translateY(-30px);
+    }
+    100% {
+        transform: rotateY(3600deg) translateY(0);
+    }
+}
+
+.coin.heads {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    color: #8b4513;
+}
+
+.coin.tails {
+    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 50%, #c0c0c0 100%);
+    color: #2c3e50;
+    border-color: #909090;
+}
+
+.coin-result {
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.coinflip-summary {
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 15px rgba(0, 0, 0, 0.7);
+    margin-top: 20px;
+}
+
+.coinflip-damage {
+    font-size: 42px;
+    font-weight: 900;
+    color: #e74c3c;
+    text-shadow:
+        -2px -2px 0 white,
+        2px -2px 0 white,
+        -2px 2px 0 white,
+        2px 2px 0 white,
+        0 0 30px rgba(231, 76, 60, 0.8);
+    margin-top: 10px;
 }

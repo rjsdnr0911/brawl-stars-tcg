@@ -407,6 +407,50 @@
         }
     }
 
+    // ===== 공격 애니메이션 헬퍼 =====
+    function playAttackAnimation(attackerClass, defenderClass, damage) {
+        try {
+            // 공격자 애니메이션
+            const attackerEl = document.querySelector(attackerClass);
+            if (attackerEl) {
+                attackerEl.classList.add('attacking');
+                setTimeout(() => attackerEl.classList.remove('attacking'), 600);
+            }
+
+            // 피격자 애니메이션 (지연)
+            setTimeout(() => {
+                const defenderEl = document.querySelector(defenderClass);
+                if (defenderEl) {
+                    // 흔들림 + 플래시
+                    defenderEl.classList.add('taking-damage', 'flash-damage');
+
+                    // 데미지 숫자 표시
+                    if (damage > 0) {
+                        const damageNum = document.createElement('div');
+                        damageNum.className = 'damage-number';
+                        damageNum.textContent = '-' + damage;
+                        defenderEl.style.position = 'relative';
+                        defenderEl.appendChild(damageNum);
+
+                        // 1.2초 후 제거
+                        setTimeout(() => {
+                            if (damageNum.parentNode) {
+                                damageNum.parentNode.removeChild(damageNum);
+                            }
+                        }, 1200);
+                    }
+
+                    // 애니메이션 클래스 제거
+                    setTimeout(() => {
+                        defenderEl.classList.remove('taking-damage', 'flash-damage');
+                    }, 500);
+                }
+            }, 300);
+        } catch (error) {
+            console.error('playAttackAnimation 오류:', error);
+        }
+    }
+
     // ===== 공격 =====
     function attack(attackIndex) {
         const player = gameState[gameState.currentPlayer];
@@ -445,23 +489,38 @@
                 console.log(attacker.name + '의 ' + attackData.name + ' 사용!');
             }
 
-            // 공격 효과 처리
+            // 공격 효과 처리 (bonusDamage 반환받기)
+            let bonusDamage = 0;
             if (attackData.effect && typeof window.Effects !== 'undefined') {
-                window.Effects.handleAttackEffect(attackData.effect, attacker, opponent, gameState);
+                const result = window.Effects.handleAttackEffect(attackData.effect, attacker, opponent, gameState, attackData);
+                bonusDamage = (result && result.bonusDamage) ? result.bonusDamage : 0;
+
+                if (DEBUG && bonusDamage > 0) {
+                    console.log('효과 보너스 데미지: +' + bonusDamage);
+                }
             }
 
-            // 일반 피해
-            if (attackData.damage > 0) {
+            // 일반 피해 (기본 데미지 + 보너스 데미지 + 공격력 증가)
+            const totalBaseDamage = (attackData.damage || 0) + bonusDamage;
+
+            if (totalBaseDamage > 0 || attackData.damage > 0) {
                 if (opponent.battleZone) {
-                    // 공격력 증가 적용
-                    let finalDamage = attackData.damage + (attacker.attackBoost || 0);
+                    // 최종 데미지 = 기본 데미지 + 보너스 + 공격력 증가
+                    let finalDamage = totalBaseDamage + (attacker.attackBoost || 0);
 
                     // 피해 감소 적용
                     const reduction = opponent.battleZone.damageReduction || 0;
                     finalDamage = Math.max(0, finalDamage - reduction);
 
+                    // 공격 애니메이션 재생
+                    const attackerClass = gameState.currentPlayer === 'player' ?
+                        '.player-battle .card' : '.opponent-battle .card';
+                    const defenderClass = gameState.currentPlayer === 'player' ?
+                        '.opponent-battle .card' : '.player-battle .card';
+                    playAttackAnimation(attackerClass, defenderClass, finalDamage);
+
                     opponent.battleZone.hp -= finalDamage;
-                    if (DEBUG) console.log('피해: ' + finalDamage);
+                    if (DEBUG) console.log('최종 피해: ' + finalDamage);
 
                     // 반동 피해 적용
                     if (attacker.recoilDamage && attacker.recoilDamage > 0) {

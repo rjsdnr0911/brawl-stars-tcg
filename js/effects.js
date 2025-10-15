@@ -5,8 +5,198 @@
 
     const DEBUG = true;
 
+    // ===== 동전 던지기 애니메이션 헬퍼 =====
+    function showCoinFlipAnimation(results, headsCount, bonusDamage) {
+        try {
+            // 오버레이 생성
+            const overlay = document.createElement('div');
+            overlay.className = 'coinflip-overlay';
+
+            // 타이틀
+            const title = document.createElement('div');
+            title.className = 'coinflip-title';
+            title.textContent = '🪙 동전 던지기!';
+            overlay.appendChild(title);
+
+            // 동전 컨테이너
+            const container = document.createElement('div');
+            container.className = 'coinflip-container';
+
+            // 각 동전 생성
+            results.forEach((isHeads, index) => {
+                const coinItem = document.createElement('div');
+                coinItem.className = 'coin-item';
+
+                const coin = document.createElement('div');
+                coin.className = 'coin ' + (isHeads ? 'heads' : 'tails');
+                coin.textContent = isHeads ? '앞면' : '뒷면';
+                coin.style.animationDelay = (index * 0.15) + 's';
+
+                const resultText = document.createElement('div');
+                resultText.className = 'coin-result';
+                resultText.textContent = isHeads ? '✓ 성공!' : '✗ 실패';
+                resultText.style.opacity = '0';
+                resultText.style.transition = 'opacity 0.3s ease';
+
+                coinItem.appendChild(coin);
+                coinItem.appendChild(resultText);
+                container.appendChild(coinItem);
+
+                // 결과 텍스트 표시 (1초 후)
+                setTimeout(() => {
+                    resultText.style.opacity = '1';
+                }, 1000 + (index * 150));
+            });
+
+            overlay.appendChild(container);
+
+            // 요약 텍스트
+            const summary = document.createElement('div');
+            summary.className = 'coinflip-summary';
+            summary.textContent = '앞면 ' + headsCount + '개!';
+            summary.style.opacity = '0';
+            summary.style.transition = 'opacity 0.3s ease';
+            overlay.appendChild(summary);
+
+            // 데미지 텍스트
+            const damageText = document.createElement('div');
+            damageText.className = 'coinflip-damage';
+            damageText.textContent = '+' + bonusDamage + ' 피해';
+            damageText.style.opacity = '0';
+            damageText.style.transition = 'opacity 0.3s ease';
+            overlay.appendChild(damageText);
+
+            // DOM에 추가
+            document.body.appendChild(overlay);
+
+            // 활성화
+            setTimeout(() => overlay.classList.add('active'), 10);
+
+            // 요약 표시 (1.5초 후)
+            setTimeout(() => {
+                summary.style.opacity = '1';
+                damageText.style.opacity = '1';
+            }, 1500);
+
+            // 3초 후 제거
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                setTimeout(() => {
+                    if (overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                }, 300);
+            }, 3500);
+
+        } catch (error) {
+            console.error('showCoinFlipAnimation 오류:', error);
+        }
+    }
+
     // ===== 공격 효과 처리 =====
     const AttackEffects = {
+        // 동전 던지기 (Pokemon TCG Pocket 스타일)
+        coin_flip: function(attacker, opponent, gameState, attackData) {
+            if (!attackData || !attackData.coinFlips || !attackData.baseDamage) {
+                console.error('coin_flip: coinFlips 또는 baseDamage 없음');
+                return { bonusDamage: 0 };
+            }
+
+            try {
+                let headsCount = 0;
+                const results = [];
+
+                // 동전 던지기 (50% 확률)
+                for (let i = 0; i < attackData.coinFlips; i++) {
+                    const isHeads = Math.random() < 0.5;
+                    if (isHeads) headsCount++;
+                    results.push(isHeads);
+                }
+
+                const bonusDamage = headsCount * attackData.baseDamage;
+
+                if (DEBUG) {
+                    console.log('동전 던지기: ' + results.map(r => r ? '앞면' : '뒷면').join(', '));
+                    console.log('앞면 ' + headsCount + '개 → +' + bonusDamage + ' 피해');
+                }
+
+                // 시각적 동전 던지기 애니메이션
+                showCoinFlipAnimation(results, headsCount, bonusDamage);
+
+                return { bonusDamage: bonusDamage };
+            } catch (error) {
+                console.error('coin_flip 효과 오류:', error);
+                return { bonusDamage: 0 };
+            }
+        },
+
+        // 벤치 보너스 피해 (상대 벤치 브롤러 수 × 보너스)
+        bench_bonus_damage: function(attacker, opponent, gameState, attackData) {
+            if (!attackData || typeof attackData.bonusPerBench !== 'number') {
+                console.error('bench_bonus_damage: bonusPerBench 없음');
+                return { bonusDamage: 0 };
+            }
+
+            try {
+                const benchCount = opponent.bench.length;
+                const bonusDamage = benchCount * attackData.bonusPerBench;
+
+                if (DEBUG) {
+                    console.log('벤치 보너스: 상대 벤치 ' + benchCount + '마리 × ' + attackData.bonusPerBench + ' = +' + bonusDamage);
+                }
+
+                return { bonusDamage: bonusDamage };
+            } catch (error) {
+                console.error('bench_bonus_damage 효과 오류:', error);
+                return { bonusDamage: 0 };
+            }
+        },
+
+        // HP 임계값 보너스 (HP 50% 이하일 때 추가 피해)
+        hp_threshold_bonus: function(attacker, opponent, gameState, attackData) {
+            if (!attackData || typeof attackData.bonusIfLowHp !== 'number') {
+                console.error('hp_threshold_bonus: bonusIfLowHp 없음');
+                return { bonusDamage: 0 };
+            }
+
+            try {
+                const hpPercent = (attacker.hp / attacker.maxHp) * 100;
+                const bonusDamage = (hpPercent <= 50) ? attackData.bonusIfLowHp : 0;
+
+                if (DEBUG) {
+                    console.log('HP 임계값 보너스: HP ' + Math.floor(hpPercent) + '% ' +
+                        (bonusDamage > 0 ? '→ +' + bonusDamage : '(보너스 없음)'));
+                }
+
+                return { bonusDamage: bonusDamage };
+            } catch (error) {
+                console.error('hp_threshold_bonus 효과 오류:', error);
+                return { bonusDamage: 0 };
+            }
+        },
+
+        // 에너지 카운트 보너스 (부착 에너지 수 × 보너스)
+        energy_count_bonus: function(attacker, opponent, gameState, attackData) {
+            if (!attackData || typeof attackData.bonusPerEnergy !== 'number') {
+                console.error('energy_count_bonus: bonusPerEnergy 없음');
+                return { bonusDamage: 0 };
+            }
+
+            try {
+                const energyCount = attacker.energy ? attacker.energy.length : 0;
+                const bonusDamage = energyCount * attackData.bonusPerEnergy;
+
+                if (DEBUG) {
+                    console.log('에너지 보너스: 부착 에너지 ' + energyCount + '개 × ' + attackData.bonusPerEnergy + ' = +' + bonusDamage);
+                }
+
+                return { bonusDamage: bonusDamage };
+            } catch (error) {
+                console.error('energy_count_bonus 효과 오류:', error);
+                return { bonusDamage: 0 };
+            }
+        },
+
         // 벤치 피해 (Royal Agent Colt)
         bench_damage: function(attacker, opponent, gameState) {
             try {
@@ -543,11 +733,15 @@
 
     // ===== 효과 API =====
     const Effects = {
-        handleAttackEffect: function(effectName, attacker, opponent, gameState) {
+        // 공격 효과 처리 (bonusDamage 반환 지원)
+        // 새로운 효과는 { bonusDamage: number } 형태로 반환 가능
+        handleAttackEffect: function(effectName, attacker, opponent, gameState, attackData) {
             if (AttackEffects[effectName]) {
-                AttackEffects[effectName](attacker, opponent, gameState);
+                // 효과 함수의 반환값을 그대로 반환 (하위 호환성 유지)
+                return AttackEffects[effectName](attacker, opponent, gameState, attackData) || null;
             } else {
                 console.warn('알 수 없는 공격 효과:', effectName);
+                return null;
             }
         },
 

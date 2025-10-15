@@ -81,6 +81,15 @@
                     damage: 20,
                     energyDiscard: 0,
                     effect: null
+                },
+                {
+                    name: '운명의 사격',
+                    cost: [ENERGY.BRAWL, ENERGY.BRAWL],
+                    damage: 0,
+                    energyDiscard: 0,
+                    effect: 'coin_flip', // 동전 2번 던져서 앞면당 +15 피해
+                    coinFlips: 2,
+                    baseDamage: 15
                 }
             ]
         },
@@ -136,6 +145,14 @@
                     damage: 0,
                     energyDiscard: 0,
                     effect: 'summon_bruce' // 벤치에 브루스 소환
+                },
+                {
+                    name: '팀워크 공격',
+                    cost: [ENERGY.BRAWL, ENERGY.BRAWL, ENERGY.COLORLESS],
+                    damage: 20,
+                    energyDiscard: 0,
+                    effect: 'bench_bonus_damage', // 상대 벤치 1마리당 +10 피해
+                    bonusPerBench: 10
                 }
             ]
         },
@@ -215,11 +232,12 @@
                     effect: null
                 },
                 {
-                    name: '돌진',
-                    cost: [ENERGY.BRAWL, ENERGY.BRAWL, ENERGY.BRAWL, ENERGY.COLORLESS],
-                    damage: 60,
-                    energyDiscard: 2,
-                    effect: null
+                    name: '전력 돌격',
+                    cost: [ENERGY.BRAWL, ENERGY.BRAWL, ENERGY.BRAWL],
+                    damage: 30,
+                    energyDiscard: 0,
+                    effect: 'energy_count_bonus', // 부착된 에너지 1개당 +10 피해
+                    bonusPerEnergy: 10
                 }
             ]
         },
@@ -266,11 +284,12 @@
                     effect: null
                 },
                 {
-                    name: '슈퍼 점프',
-                    cost: [ENERGY.BRAWL, ENERGY.BRAWL],
-                    damage: 40,
+                    name: '역전의 일격',
+                    cost: [ENERGY.BRAWL, ENERGY.BRAWL, ENERGY.COLORLESS],
+                    damage: 30,
                     energyDiscard: 0,
-                    effect: 'self_heal_10'
+                    effect: 'hp_threshold_bonus', // HP 50% 이하일 때 +20 피해
+                    bonusIfLowHp: 20
                 }
             ]
         },
