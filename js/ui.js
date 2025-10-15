@@ -202,7 +202,14 @@
                 });
 
                 // 클릭으로 에너지 부착 (선택된 에너지가 있을 때)
-                div.addEventListener('click', function() {
+                div.addEventListener('click', function(e) {
+                    // 대상 선택 모드 우선 처리
+                    if (window.targetSelectionActive) {
+                        handleTargetSelection(location, index, false);
+                        e.stopPropagation();
+                        return;
+                    }
+
                     if (window.selectedEnergyIndex !== undefined) {
                         attachEnergyToCard(location, index);
                         window.selectedEnergyIndex = undefined;
@@ -211,13 +218,30 @@
                 });
             }
 
+            // 상대 필드 브롤러 클릭 (대상 선택용)
+            if (playerType === 'ai' && location !== 'hand') {
+                div.addEventListener('click', function(e) {
+                    if (window.targetSelectionActive) {
+                        handleTargetSelection(location, index, true);
+                        e.stopPropagation();
+                    }
+                });
+                div.style.cursor = 'pointer';
+            }
+
             // 공격 (플레이어 배틀존)
             if (playerType === 'player' && location === 'battle' && card.canAttack) {
                 div.classList.add('can-attack');
 
-                // 클릭하면 공격 패널 표시
-                div.addEventListener('click', function() {
-                    showAttackPanel(card);
+                // 클릭하면 공격 패널 표시 (대상 선택 모드가 아닐 때만)
+                div.addEventListener('click', function(e) {
+                    if (!window.targetSelectionActive) {
+                        showAttackPanel(card);
+                    } else {
+                        // 대상 선택 모드에서는 대상으로 처리
+                        handleTargetSelection(location, index, false);
+                        e.stopPropagation();
+                    }
                 });
             }
         }
@@ -338,7 +362,24 @@
             return;
         }
 
-        // 효과 실행
+        // 파워 큐브 - 배틀존에 자동 부착
+        if (card.effect === 'attach_extra_energy') {
+            const success = window.Effects.handleTrainerEffect(card.effect, window.Game.getState(), 'battle', 0);
+            if (success) {
+                player.hand.splice(handIndex, 1);
+                render(window.Game.getState());
+            }
+            return;
+        }
+
+        // 대상 선택이 필요한 카드 처리
+        if (needsTargetSelection(card.effect)) {
+            window.pendingTrainerCard = { handIndex: handIndex, card: card };
+            activateTargetSelectionMode(card);
+            return;
+        }
+
+        // 일반 효과 실행 (대상 선택 불필요)
         const success = window.Effects.handleTrainerEffect(card.effect, window.Game.getState());
 
         if (success) {
@@ -353,6 +394,76 @@
             // UI 업데이트
             render(window.Game.getState());
         }
+    }
+
+    // ===== 대상 선택이 필요한지 확인 =====
+    function needsTargetSelection(effectName) {
+        const targetEffects = [
+            'heal_30',                  // 슈퍼 포션
+            'full_heal_remove_energy',  // 스파이크의 재생
+            'instant_switch',           // 교체 스위치
+            'switch_opponent'           // 타라의 포털
+        ];
+        return targetEffects.includes(effectName);
+    }
+
+    // ===== 대상 선택 모드 활성화 =====
+    function activateTargetSelectionMode(card) {
+        // 손패 패널 닫기
+        document.getElementById('hand-panel').classList.remove('active');
+
+        // 안내 메시지
+        const effectMessages = {
+            'heal_30': '회복할 브롤러를 클릭하세요',
+            'full_heal_remove_energy': '최대 회복할 브롤러를 클릭하세요',
+            'instant_switch': '배틀존과 교체할 벤치 브롤러를 클릭하세요',
+            'switch_opponent': '강제로 불러올 상대 벤치 브롤러를 클릭하세요'
+        };
+
+        alert(effectMessages[card.effect] || '대상을 선택하세요');
+
+        // 대상 선택 모드 플래그
+        window.targetSelectionActive = true;
+    }
+
+    // ===== 대상 선택 완료 처리 =====
+    function handleTargetSelection(location, index, isOpponent) {
+        if (!window.targetSelectionActive || !window.pendingTrainerCard) {
+            return;
+        }
+
+        const { handIndex, card } = window.pendingTrainerCard;
+        const player = window.Game.getState().player;
+        let success = false;
+
+        // 효과별 처리
+        if (card.effect === 'switch_opponent') {
+            // 상대 벤치 선택
+            success = window.Effects.handleTrainerEffect(card.effect, window.Game.getState(), index);
+        } else if (card.effect === 'instant_switch') {
+            // 내 벤치 선택
+            success = window.Effects.handleTrainerEffect(card.effect, window.Game.getState(), index);
+        } else {
+            // 일반 대상 선택 (location, index)
+            success = window.Effects.handleTrainerEffect(card.effect, window.Game.getState(), location, index);
+        }
+
+        if (success) {
+            // 손패에서 제거
+            player.hand.splice(handIndex, 1);
+
+            // 서포터 사용 표시
+            if (card.trainerType === 'supporter') {
+                player.supporterUsedThisTurn = true;
+            }
+
+            // UI 업데이트
+            render(window.Game.getState());
+        }
+
+        // 대상 선택 모드 종료
+        window.targetSelectionActive = false;
+        window.pendingTrainerCard = null;
     }
 
     // ===== 턴 정보 렌더링 =====

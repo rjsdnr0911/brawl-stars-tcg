@@ -498,7 +498,7 @@
             }
         },
 
-        // 파워 큐브 - 에너지 추가 부착
+        // 파워 큐브 - 배틀존 브롤러에 에너지 1개 직접 생성
         attach_extra_energy: function(gameState, brawlerLocation, brawlerIndex) {
             try {
                 const player = gameState[gameState.currentPlayer];
@@ -511,19 +511,18 @@
                 }
 
                 if (!brawler) {
-                    console.log('대상을 선택해주세요');
+                    console.log('배틀존에 브롤러가 없습니다');
                     return false;
                 }
 
-                if (player.energyZone.length === 0) {
-                    console.log('에너지존에 에너지가 없습니다');
-                    return false;
+                // 에너지 직접 생성 (에너지존 불필요)
+                const newEnergy = { type: 'brawl' };
+                if (!brawler.energy) {
+                    brawler.energy = [];
                 }
+                brawler.energy.push(newEnergy);
 
-                const energy = player.energyZone.shift();
-                window.EnergySystem.attachEnergy(brawler, energy);
-
-                if (DEBUG) console.log('에너지 추가 부착');
+                if (DEBUG) console.log(brawler.name + '에게 에너지 1개 직접 부착');
                 return true;
             } catch (error) {
                 console.error('attach_extra_energy 효과 오류:', error);

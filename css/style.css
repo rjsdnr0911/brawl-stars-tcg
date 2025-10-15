@@ -194,7 +194,7 @@ body {
     border: 2px dashed #3498db;
     border-radius: 10px;
     padding: 10px;
-    min-height: 120px;
+    min-height: 195px;
     align-content: flex-start;
     position: relative;
 }
@@ -213,32 +213,32 @@ body {
 }
 
 .bench-zone .card {
-    width: 77px;  /* 0.7배 */
-    min-height: 140px;  /* 0.7배 (200 * 0.7) */
-    font-size: 8px;
+    width: 99px;  /* 0.9배 (110 * 0.9) */
+    min-height: 180px;  /* 0.9배 (200 * 0.9) */
+    font-size: 10px;
 }
 
 .bench-zone .card-image-container {
-    height: 70px;  /* 0.7배 */
+    height: 90px;  /* 0.9배 (100 * 0.9) */
 }
 
 .bench-zone .card-name {
-    font-size: 9px;
-    padding: 2px;
+    font-size: 10px;
+    padding: 3px;
 }
 
 .bench-zone .card-hp,
 .bench-zone .card-energy {
-    font-size: 7px;
+    font-size: 9px;
 }
 
 .bench-zone .attack {
-    font-size: 6px;
-    padding: 2px;
+    font-size: 8px;
+    padding: 3px;
 }
 
 .bench-zone .card-description {
-    font-size: 6px;
+    font-size: 8px;
 }
 
 /* ===== 손패 토글 버튼 ===== */
