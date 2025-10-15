@@ -89,6 +89,7 @@
             <div class="control-buttons">
                 <button id="btn-end-turn" onclick="window.Game.endTurn()">턴 종료</button>
                 <button id="btn-retreat" onclick="window.Game.retreat()">후퇴</button>
+                <button id="btn-fullscreen" onclick="window.toggleFullscreen()">전체화면</button>
             </div>
         </div>
     </div>
@@ -241,6 +242,29 @@
 
     <!-- 게임 시작 -->
     <script>
+        // 전체화면 토글 함수
+        window.toggleFullscreen = function() {
+            if (!document.fullscreenElement) {
+                // 전체화면 진입
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert('전체화면 모드 진입 실패: ' + err.message);
+                });
+            } else {
+                // 전체화면 종료
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        };
+
+        // 전체화면 변경 감지 (버튼 텍스트 업데이트)
+        document.addEventListener('fullscreenchange', function() {
+            const btn = document.getElementById('btn-fullscreen');
+            if (btn) {
+                btn.textContent = document.fullscreenElement ? '전체화면 종료' : '전체화면';
+            }
+        });
+
         window.addEventListener('DOMContentLoaded', function() {
             try {
                 console.log('앱 초기화 시작...');
