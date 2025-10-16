@@ -179,6 +179,15 @@
                 div.style.cursor = 'pointer';
             }
 
+            // 진화 클릭 이벤트 (진화 카드)
+            if (playerType === 'player' && location === 'hand' && !card.isBasic && card.evolvesFrom) {
+                div.onclick = function() {
+                    tryEvolveBrawler(index, card);
+                };
+                div.style.cursor = 'pointer';
+                div.style.border = '2px solid #9B59B6';  // 진화 카드 표시
+            }
+
             // 에너지 부착 (플레이어 필드 - 드래그 또는 클릭)
             if (playerType === 'player' && location !== 'hand') {
                 // 드래그로 에너지 받기
@@ -273,9 +282,45 @@
 
     // ===== 에너지 붙이기 =====
     function attachEnergyToCard(location, index) {
-        const result = window.Game.attachEnergy(location, index);
-        if (result) {
-            render(window.Game.getState());
+        try {
+            // 파티클 트레일 효과 (에너지존 → 대상 카드)
+            if (typeof window.ParticleSystem !== 'undefined') {
+                // 에너지존 위치 (시작점)
+                const energyZoneEl = document.getElementById('energy-items');
+                if (energyZoneEl) {
+                    const energyRect = energyZoneEl.getBoundingClientRect();
+                    const startX = energyRect.left + energyRect.width / 2;
+                    const startY = energyRect.top + energyRect.height / 2;
+
+                    // 대상 카드 위치 (도착점)
+                    let targetSelector = null;
+                    if (location === 'battle') {
+                        targetSelector = '.player-battle .card';
+                    } else if (location === 'bench') {
+                        targetSelector = `.player-bench .card:nth-child(${index + 1})`;
+                    }
+
+                    if (targetSelector) {
+                        const targetEl = document.querySelector(targetSelector);
+                        if (targetEl) {
+                            const targetRect = targetEl.getBoundingClientRect();
+                            const endX = targetRect.left + targetRect.width / 2;
+                            const endY = targetRect.top + targetRect.height / 2;
+
+                            // 파티클 트레일 생성 (파란색 에너지)
+                            window.ParticleSystem.createTrail(startX, startY, endX, endY, '#3498db');
+                        }
+                    }
+                }
+            }
+
+            // 실제 에너지 부착
+            const result = window.Game.attachEnergy(location, index);
+            if (result) {
+                render(window.Game.getState());
+            }
+        } catch (error) {
+            console.error('attachEnergyToCard 오류:', error);
         }
     }
 
@@ -475,10 +520,163 @@
         }
     }
 
+    // ===== 카드 드로우 애니메이션 (Pokemon TCG Pocket 스타일) =====
+    function playCardDrawAnimation(playerType, card) {
+        if (!card) return;
+
+        try {
+            // 덱 요소 위치 (시작점)
+            const deckEl = document.getElementById(playerType + '-deck-pile');
+            if (!deckEl) return;
+
+            const deckRect = deckEl.getBoundingClientRect();
+
+            // 손패 토글 버튼 위치 (목표점 - 플레이어만)
+            let targetX, targetY;
+
+            if (playerType === 'player') {
+                const handBtn = document.getElementById('hand-toggle-btn');
+                if (handBtn) {
+                    const handRect = handBtn.getBoundingClientRect();
+                    targetX = handRect.left + handRect.width / 2 - deckRect.left - 55;
+                    targetY = handRect.top + handRect.height / 2 - deckRect.top - 100;
+                } else {
+                    // 폴백: 화면 하단 중앙
+                    targetX = window.innerWidth / 2 - deckRect.left - 55;
+                    targetY = window.innerHeight - 150 - deckRect.top;
+                }
+            } else {
+                // AI는 상단 중앙
+                targetX = window.innerWidth / 2 - deckRect.left - 55;
+                targetY = -deckRect.top + 100;
+            }
+
+            // 임시 카드 요소 생성
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card card-drawing';
+            cardEl.style.left = deckRect.left + 'px';
+            cardEl.style.top = deckRect.top + 'px';
+            cardEl.style.setProperty('--draw-x', targetX + 'px');
+            cardEl.style.setProperty('--draw-y', targetY + 'px');
+
+            // 카드 뒷면 이미지
+            cardEl.innerHTML = `
+                <div class="card-image-container">
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; border-radius: 5px;">
+                        🃏
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(cardEl);
+
+            // 애니메이션 완료 후 제거
+            setTimeout(() => {
+                if (cardEl.parentNode) {
+                    cardEl.parentNode.removeChild(cardEl);
+                }
+            }, 800);
+
+        } catch (error) {
+            console.error('playCardDrawAnimation 오류:', error);
+        }
+    }
+
+    // ===== 진화 시도 (Pokemon TCG Pocket 스타일) =====
+    function tryEvolveBrawler(handIndex, evolutionCard) {
+        if (!evolutionCard || !evolutionCard.evolvesFrom) {
+            console.error('tryEvolveBrawler: 잘못된 진화 카드', evolutionCard);
+            return;
+        }
+
+        try {
+            const player = window.Game.getState().player;
+
+            // 진화 대상 찾기
+            let targetBrawler = null;
+            let targetLocation = null;
+            let targetIndex = -1;
+            let cardSelector = null;
+
+            // 배틀존 체크
+            if (player.battleZone && player.battleZone.id === evolutionCard.evolvesFrom) {
+                targetBrawler = player.battleZone;
+                targetLocation = 'battle';
+                targetIndex = 0;
+                cardSelector = '.player-battle .card';
+            }
+            // 벤치 체크
+            else {
+                for (let i = 0; i < player.bench.length; i++) {
+                    if (player.bench[i] && player.bench[i].id === evolutionCard.evolvesFrom) {
+                        targetBrawler = player.bench[i];
+                        targetLocation = 'bench';
+                        targetIndex = i;
+                        cardSelector = `.player-bench .card:nth-child(${i + 1})`;
+                        break;
+                    }
+                }
+            }
+
+            // 진화 대상이 없으면 경고
+            if (!targetBrawler) {
+                alert(`${evolutionCard.evolvesFrom} 브롤러가 필드에 없습니다. 먼저 기본 브롤러를 배치하세요.`);
+                return;
+            }
+
+            // 카드 DOM 요소 찾기
+            const cardEl = document.querySelector(cardSelector);
+            if (!cardEl) {
+                console.error('tryEvolveBrawler: 카드 요소를 찾을 수 없음', cardSelector);
+                return;
+            }
+
+            // 진화 애니메이션 적용
+            cardEl.classList.add('card-evolving');
+
+            // 파티클 폭발 효과
+            if (typeof window.ParticleSystem !== 'undefined') {
+                const rect = cardEl.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                window.ParticleSystem.createEvolutionBurst(centerX, centerY);
+            }
+
+            // 애니메이션 완료 후 진화 처리
+            setTimeout(() => {
+                // 에너지와 상태 이전
+                evolutionCard.energy = targetBrawler.energy || [];
+                evolutionCard.canAttack = targetBrawler.canAttack || false;
+                evolutionCard.hp = targetBrawler.hp; // 현재 HP 유지
+
+                // 필드에서 진화 카드로 교체
+                if (targetLocation === 'battle') {
+                    player.battleZone = evolutionCard;
+                } else {
+                    player.bench[targetIndex] = evolutionCard;
+                }
+
+                // 손패에서 진화 카드 제거
+                player.hand.splice(handIndex, 1);
+
+                // UI 업데이트
+                render(window.Game.getState());
+
+                // 진화 완료 메시지
+                console.log(`${targetBrawler.name} → ${evolutionCard.name} 진화 완료!`);
+
+            }, 1200);  // CSS 애니메이션 길이와 동일
+
+        } catch (error) {
+            console.error('tryEvolveBrawler 오류:', error);
+        }
+    }
+
     // 전역 노출
     window.UI = {
         render: render,
-        showAttackPanel: showAttackPanel
+        showAttackPanel: showAttackPanel,
+        playCardDrawAnimation: playCardDrawAnimation
     };
 
     if (DEBUG) {

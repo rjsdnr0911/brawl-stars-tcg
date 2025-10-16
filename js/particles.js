@@ -251,6 +251,208 @@
             }
         },
 
+        // 공격 충격파 (원형 확산)
+        createAttackImpact: function(x, y, damage) {
+            if (!canvas) return;
+
+            try {
+                // 데미지가 클수록 더 많은 파티클
+                const baseCount = 30;
+                const bonusCount = Math.floor(damage / 10);
+                const count = Math.min(baseCount + bonusCount, MAX_PARTICLES - particles.length);
+
+                // 데미지에 따른 색상 (약한 공격 = 노란색, 강한 공격 = 빨간색)
+                const hue = damage > 40 ? 0 : damage > 20 ? 30 : 50;
+                const color = `hsl(${hue}, 100%, 60%)`;
+
+                for (let i = 0; i < count; i++) {
+                    const particle = getParticle();
+                    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+                    const speed = 0.15 + Math.random() * 0.25;
+
+                    particle.init(
+                        x,
+                        y,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        color,
+                        3 + Math.random() * 4,
+                        0.8 + Math.random() * 0.4,
+                        0.0003
+                    );
+
+                    particles.push(particle);
+                }
+
+                if (DEBUG && count > 0) {
+                    console.log('공격 충격파:', damage + '데미지,', count + '개 파티클');
+                }
+            } catch (error) {
+                console.error('createAttackImpact 오류:', error);
+            }
+        },
+
+        // 충격파 링 효과 (확장하는 원)
+        createShockwave: function(x, y, damage) {
+            if (!canvas) return;
+
+            try {
+                const count = Math.min(60, MAX_PARTICLES - particles.length);
+                const hue = damage > 40 ? 0 : damage > 20 ? 30 : 50;
+
+                for (let i = 0; i < count; i++) {
+                    const particle = getParticle();
+                    const angle = (Math.PI * 2 * i) / count;
+                    const speed = 0.3 + Math.random() * 0.1;
+
+                    particle.init(
+                        x,
+                        y,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        `hsla(${hue}, 100%, 70%, 0.8)`,
+                        2 + Math.random() * 2,
+                        0.6 + Math.random() * 0.2,
+                        0
+                    );
+
+                    particles.push(particle);
+                }
+
+                if (DEBUG && count > 0) {
+                    console.log('충격파 링:', count + '개 파티클');
+                }
+            } catch (error) {
+                console.error('createShockwave 오류:', error);
+            }
+        },
+
+        // 강력한 공격 폭발 (다층 폭발)
+        createAttackExplosion: function(x, y, damage) {
+            if (!canvas) return;
+
+            try {
+                // 중심 폭발
+                this.createAttackImpact(x, y, damage);
+
+                // 충격파 링 (지연)
+                setTimeout(() => {
+                    this.createShockwave(x, y, damage);
+                }, 50);
+
+                // 추가 불꽃 파티클 (강한 공격만)
+                if (damage > 30) {
+                    setTimeout(() => {
+                        const sparkCount = Math.min(20, MAX_PARTICLES - particles.length);
+                        for (let i = 0; i < sparkCount; i++) {
+                            const particle = getParticle();
+                            const angle = Math.random() * Math.PI * 2;
+                            const speed = 0.1 + Math.random() * 0.15;
+
+                            particle.init(
+                                x,
+                                y,
+                                Math.cos(angle) * speed,
+                                Math.sin(angle) * speed,
+                                '#ff6b00',
+                                4 + Math.random() * 3,
+                                1.0 + Math.random() * 0.5,
+                                0.0004
+                            );
+
+                            particles.push(particle);
+                        }
+                    }, 100);
+                }
+
+                if (DEBUG) {
+                    console.log('공격 폭발 (다층):', damage + '데미지');
+                }
+            } catch (error) {
+                console.error('createAttackExplosion 오류:', error);
+            }
+        },
+
+        // 진화 빛 폭발 (Pokemon TCG Pocket 스타일)
+        createEvolutionBurst: function(x, y) {
+            if (!canvas) return;
+
+            try {
+                // 1단계: 중심 빛 폭발 (골드)
+                const burstCount = Math.min(80, MAX_PARTICLES - particles.length);
+                for (let i = 0; i < burstCount; i++) {
+                    const particle = getParticle();
+                    const angle = (Math.PI * 2 * i) / burstCount + (Math.random() - 0.5) * 0.2;
+                    const speed = 0.2 + Math.random() * 0.3;
+
+                    particle.init(
+                        x,
+                        y,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        '#FFD700',  // 골드
+                        4 + Math.random() * 5,
+                        1.5 + Math.random() * 0.5,
+                        0.0002
+                    );
+
+                    particles.push(particle);
+                }
+
+                // 2단계: 보라색 에너지 (지연)
+                setTimeout(() => {
+                    const energyCount = Math.min(50, MAX_PARTICLES - particles.length);
+                    for (let i = 0; i < energyCount; i++) {
+                        const particle = getParticle();
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = 0.15 + Math.random() * 0.2;
+
+                        particle.init(
+                            x,
+                            y,
+                            Math.cos(angle) * speed,
+                            Math.sin(angle) * speed,
+                            '#9B59B6',  // 보라색
+                            3 + Math.random() * 4,
+                            1.2 + Math.random() * 0.5,
+                            0.0003
+                        );
+
+                        particles.push(particle);
+                    }
+                }, 150);
+
+                // 3단계: 반짝이는 별 (위로 떠오름)
+                setTimeout(() => {
+                    const starCount = Math.min(40, MAX_PARTICLES - particles.length);
+                    for (let i = 0; i < starCount; i++) {
+                        const particle = getParticle();
+                        const offsetX = (Math.random() - 0.5) * 0.1;
+                        const offsetY = -0.08 - Math.random() * 0.15;
+
+                        particle.init(
+                            x + (Math.random() - 0.5) * 50,
+                            y + (Math.random() - 0.5) * 50,
+                            offsetX,
+                            offsetY,
+                            Math.random() > 0.5 ? '#FFD700' : '#FFF',
+                            2 + Math.random() * 3,
+                            2.0 + Math.random() * 1.0,
+                            0
+                        );
+
+                        particles.push(particle);
+                    }
+                }, 300);
+
+                if (DEBUG) {
+                    console.log('진화 빛 폭발 효과 생성');
+                }
+            } catch (error) {
+                console.error('createEvolutionBurst 오류:', error);
+            }
+        },
+
         // 업데이트
         update: function(deltaTime) {
             if (deltaTime <= 0 || deltaTime > 100) return;
@@ -312,6 +514,201 @@
             particlePool = [];
             canvas = null;
             ctx = null;
+        },
+
+        // 승리 축하 효과 (Pokemon TCG Pocket 스타일)
+        createVictoryCelebration: function() {
+            if (!canvas) return;
+
+            try {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // 1단계: 중앙 골드 폭발 (100개)
+                const explosionCount = Math.min(100, MAX_PARTICLES - particles.length);
+                for (let i = 0; i < explosionCount; i++) {
+                    const particle = getParticle();
+                    const angle = (Math.PI * 2 * i) / explosionCount + (Math.random() - 0.5) * 0.3;
+                    const speed = 0.25 + Math.random() * 0.35;
+
+                    particle.init(
+                        centerX,
+                        centerY,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        Math.random() > 0.5 ? '#FFD700' : '#FFA500',
+                        5 + Math.random() * 6,
+                        2.0 + Math.random() * 1.0,
+                        0.0002
+                    );
+
+                    particles.push(particle);
+                }
+
+                // 2단계: 위로 솟구치는 불꽃 (150ms 후)
+                setTimeout(() => {
+                    const fireCount = Math.min(60, MAX_PARTICLES - particles.length);
+                    for (let i = 0; i < fireCount; i++) {
+                        const particle = getParticle();
+                        const offsetX = (Math.random() - 0.5) * 0.15;
+                        const offsetY = -0.3 - Math.random() * 0.2;
+
+                        particle.init(
+                            centerX + (Math.random() - 0.5) * 200,
+                            centerY,
+                            offsetX,
+                            offsetY,
+                            '#FF6B00',
+                            6 + Math.random() * 5,
+                            1.5 + Math.random() * 1.0,
+                            0.0004
+                        );
+
+                        particles.push(particle);
+                    }
+                }, 150);
+
+                // 3단계: 떨어지는 색종이 (300ms 후)
+                setTimeout(() => {
+                    const confettiCount = Math.min(80, MAX_PARTICLES - particles.length);
+                    const colors = ['#FF1744', '#00E676', '#2979FF', '#FFD700', '#FF6B00', '#E040FB'];
+
+                    for (let i = 0; i < confettiCount; i++) {
+                        const particle = getParticle();
+                        const x = Math.random() * canvas.width;
+                        const offsetX = (Math.random() - 0.5) * 0.1;
+                        const offsetY = 0.05 + Math.random() * 0.15;
+
+                        particle.init(
+                            x,
+                            -50,
+                            offsetX,
+                            offsetY,
+                            colors[Math.floor(Math.random() * colors.length)],
+                            4 + Math.random() * 4,
+                            3.0 + Math.random() * 2.0,
+                            0.0001
+                        );
+
+                        particles.push(particle);
+                    }
+                }, 300);
+
+                // 4단계: 반짝이는 별 (600ms 후)
+                setTimeout(() => {
+                    const starCount = Math.min(50, MAX_PARTICLES - particles.length);
+                    for (let i = 0; i < starCount; i++) {
+                        const particle = getParticle();
+                        const x = Math.random() * canvas.width;
+                        const y = Math.random() * canvas.height;
+                        const offsetX = (Math.random() - 0.5) * 0.05;
+                        const offsetY = -0.02 - Math.random() * 0.08;
+
+                        particle.init(
+                            x,
+                            y,
+                            offsetX,
+                            offsetY,
+                            '#FFF',
+                            3 + Math.random() * 3,
+                            2.0 + Math.random() * 1.5,
+                            0
+                        );
+
+                        particles.push(particle);
+                    }
+                }, 600);
+
+                if (DEBUG) {
+                    console.log('승리 축하 효과 생성');
+                }
+            } catch (error) {
+                console.error('createVictoryCelebration 오류:', error);
+            }
+        },
+
+        // 패배 효과 (Pokemon TCG Pocket 스타일)
+        createDefeatEffect: function() {
+            if (!canvas) return;
+
+            try {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // 1단계: 중앙에서 퍼지는 어두운 파장 (60개)
+                const waveCount = Math.min(60, MAX_PARTICLES - particles.length);
+                for (let i = 0; i < waveCount; i++) {
+                    const particle = getParticle();
+                    const angle = (Math.PI * 2 * i) / waveCount;
+                    const speed = 0.1 + Math.random() * 0.15;
+
+                    particle.init(
+                        centerX,
+                        centerY,
+                        Math.cos(angle) * speed,
+                        Math.sin(angle) * speed,
+                        '#546E7A',
+                        4 + Math.random() * 4,
+                        1.5 + Math.random() * 0.5,
+                        0.0002
+                    );
+
+                    particles.push(particle);
+                }
+
+                // 2단계: 위에서 떨어지는 어두운 입자들 (200ms 후)
+                setTimeout(() => {
+                    const fallCount = Math.min(70, MAX_PARTICLES - particles.length);
+                    for (let i = 0; i < fallCount; i++) {
+                        const particle = getParticle();
+                        const x = Math.random() * canvas.width;
+                        const offsetX = (Math.random() - 0.5) * 0.05;
+                        const offsetY = 0.08 + Math.random() * 0.12;
+
+                        particle.init(
+                            x,
+                            -50,
+                            offsetX,
+                            offsetY,
+                            Math.random() > 0.5 ? '#78909C' : '#90A4AE',
+                            3 + Math.random() * 3,
+                            2.5 + Math.random() * 1.5,
+                            0.0001
+                        );
+
+                        particles.push(particle);
+                    }
+                }, 200);
+
+                // 3단계: 중앙에서 천천히 사라지는 파란 불꽃 (400ms 후)
+                setTimeout(() => {
+                    const emberCount = Math.min(40, MAX_PARTICLES - particles.length);
+                    for (let i = 0; i < emberCount; i++) {
+                        const particle = getParticle();
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = 0.05 + Math.random() * 0.1;
+
+                        particle.init(
+                            centerX + (Math.random() - 0.5) * 100,
+                            centerY + (Math.random() - 0.5) * 100,
+                            Math.cos(angle) * speed,
+                            Math.sin(angle) * speed,
+                            '#607D8B',
+                            2 + Math.random() * 3,
+                            2.0 + Math.random() * 1.0,
+                            0
+                        );
+
+                        particles.push(particle);
+                    }
+                }, 400);
+
+                if (DEBUG) {
+                    console.log('패배 효과 생성');
+                }
+            } catch (error) {
+                console.error('createDefeatEffect 오류:', error);
+            }
         },
 
         // 상태 정보

@@ -130,6 +130,59 @@
             }
         },
 
+        // 동전 던지기 힐 (Serenade Poco)
+        coin_flip_heal: function(attacker, opponent, gameState, attackData) {
+            if (!attackData || !attackData.coinFlips || !attackData.healAmount) {
+                console.error('coin_flip_heal: coinFlips 또는 healAmount 없음');
+                return { bonusDamage: 0 };
+            }
+
+            try {
+                let headsCount = 0;
+                const results = [];
+
+                // 동전 던지기 (50% 확률)
+                for (let i = 0; i < attackData.coinFlips; i++) {
+                    const isHeads = Math.random() < 0.5;
+                    if (isHeads) headsCount++;
+                    results.push(isHeads);
+                }
+
+                const totalHeal = headsCount * attackData.healAmount;
+
+                if (DEBUG) {
+                    console.log('동전 던지기: ' + results.map(r => r ? '앞면' : '뒷면').join(', '));
+                    console.log('앞면 ' + headsCount + '개 → 아군 전체 +' + totalHeal + ' 회복');
+                }
+
+                // 모든 아군 브롤러 힐
+                const player = gameState[gameState.currentPlayer];
+
+                // 배틀존 힐
+                if (player.battleZone) {
+                    player.battleZone.hp = Math.min(
+                        player.battleZone.hp + totalHeal,
+                        player.battleZone.maxHp
+                    );
+                }
+
+                // 벤치 힐
+                player.bench.forEach(b => {
+                    if (b) {
+                        b.hp = Math.min(b.hp + totalHeal, b.maxHp);
+                    }
+                });
+
+                // 시각적 동전 던지기 애니메이션 (힐 버전)
+                showCoinFlipAnimation(results, headsCount, totalHeal);
+
+                return { bonusDamage: 0 }; // 힐이므로 데미지는 없음
+            } catch (error) {
+                console.error('coin_flip_heal 효과 오류:', error);
+                return { bonusDamage: 0 };
+            }
+        },
+
         // 벤치 보너스 피해 (상대 벤치 브롤러 수 × 보너스)
         bench_bonus_damage: function(attacker, opponent, gameState, attackData) {
             if (!attackData || typeof attackData.bonusPerBench !== 'number') {

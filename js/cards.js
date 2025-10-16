@@ -29,7 +29,7 @@
                 {
                     name: '샷건 폭발',
                     cost: [ENERGY.BRAWL, ENERGY.BRAWL],
-                    damage: 30,
+                    damage: 25,
                     energyDiscard: 0,
                     effect: null
                 }
@@ -54,11 +54,13 @@
                     effect: null
                 },
                 {
-                    name: '연발 사격',
+                    name: '운명의 샷건',
                     cost: [ENERGY.BRAWL, ENERGY.BRAWL, ENERGY.COLORLESS],
-                    damage: 60,
-                    energyDiscard: 2,
-                    effect: null
+                    damage: 0,
+                    energyDiscard: 0,
+                    effect: 'coin_flip',
+                    coinFlips: 3,
+                    baseDamage: 20
                 }
             ]
         },
@@ -199,16 +201,18 @@
                 {
                     name: '음파 공격',
                     cost: [ENERGY.BRAWL, ENERGY.COLORLESS],
-                    damage: 10,
+                    damage: 20,
                     energyDiscard: 0,
                     effect: null
                 },
                 {
-                    name: '전체 힐',
+                    name: '운명의 세레나데',
                     cost: [ENERGY.BRAWL, ENERGY.BRAWL],
                     damage: 0,
                     energyDiscard: 0,
-                    effect: 'heal_all_20' // 모든 아군 +20 HP
+                    effect: 'coin_flip_heal', // 동전 2번, 앞면당 아군 전체 15 힐
+                    coinFlips: 2,
+                    healAmount: 15
                 }
             ]
         },

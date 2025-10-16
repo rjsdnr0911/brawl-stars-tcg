@@ -110,6 +110,12 @@
             const card = player.deck.shift();
             player.hand.push(card);
 
+            // 카드 드로우 애니메이션 재생 (Pokemon TCG Pocket 스타일)
+            const playerType = (player === gameState.player) ? 'player' : 'ai';
+            if (typeof window.UI !== 'undefined' && window.UI.playCardDrawAnimation) {
+                window.UI.playCardDrawAnimation(playerType, card);
+            }
+
             if (DEBUG) {
                 console.log('카드 드로우:', card.name);
             }
@@ -519,6 +525,21 @@
                         '.opponent-battle .card' : '.player-battle .card';
                     playAttackAnimation(attackerClass, defenderClass, finalDamage);
 
+                    // 공격 파티클 효과 (피격 위치에)
+                    const defenderEl = document.querySelector(defenderClass);
+                    if (defenderEl && typeof window.ParticleSystem !== 'undefined') {
+                        const rect = defenderEl.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+
+                        // 데미지가 40 이상이면 강력한 폭발, 아니면 일반 충격파
+                        if (finalDamage >= 40) {
+                            window.ParticleSystem.createAttackExplosion(centerX, centerY, finalDamage);
+                        } else {
+                            window.ParticleSystem.createAttackImpact(centerX, centerY, finalDamage);
+                        }
+                    }
+
                     opponent.battleZone.hp -= finalDamage;
                     if (DEBUG) console.log('최종 피해: ' + finalDamage);
 
@@ -620,17 +641,39 @@
     // ===== 승리 조건 체크 =====
     function checkWinCondition() {
         try {
+            // 플레이어 승리
             if (gameState.player.prizes >= 3) {
                 gameState.gameOver = true;
                 gameState.winner = 'player';
-                alert('플레이어 승리!');
+
+                // 승리 축하 파티클 효과
+                if (typeof window.ParticleSystem !== 'undefined') {
+                    window.ParticleSystem.createVictoryCelebration();
+                }
+
+                // 파티클 효과 시작 후 알림
+                setTimeout(() => {
+                    alert('🎉 플레이어 승리! 🎉');
+                }, 500);
+
                 return true;
             }
 
+            // AI 승리 (플레이어 패배)
             if (gameState.ai.prizes >= 3) {
                 gameState.gameOver = true;
                 gameState.winner = 'ai';
-                alert('AI 승리!');
+
+                // 패배 파티클 효과
+                if (typeof window.ParticleSystem !== 'undefined') {
+                    window.ParticleSystem.createDefeatEffect();
+                }
+
+                // 파티클 효과 시작 후 알림
+                setTimeout(() => {
+                    alert('💔 AI 승리... 💔');
+                }, 500);
+
                 return true;
             }
 
