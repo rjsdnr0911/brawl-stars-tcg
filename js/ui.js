@@ -41,8 +41,14 @@
                 const handEl = document.getElementById('player-hand');
                 if (handEl) {
                     handEl.innerHTML = '';
-                    player.hand.forEach((card, index) => {
-                        const cardEl = createCardElement(card, playerType, 'hand', index);
+
+                    // 손패 정렬 적용
+                    const sortedHand = sortHandCards(player.hand);
+
+                    sortedHand.forEach((card) => {
+                        // 원래 손패에서의 인덱스 찾기 (클릭 이벤트용)
+                        const originalIndex = player.hand.indexOf(card);
+                        const cardEl = createCardElement(card, playerType, 'hand', originalIndex);
                         handEl.appendChild(cardEl);
                     });
                 }
@@ -148,6 +154,78 @@
         });
     }
 
+    // ===== 브롤러/트레이너 이모지 맵 =====
+    const CARD_EMOJIS = {
+        // 브롤러
+        'shelly': '🔫',
+        'bandita_shelly': '💀🔫',
+        'colt': '🎯',
+        'royal_agent_colt': '🕴️',
+        'poco': '🎸',
+        'serenade_poco': '🎸✨',
+        'nita': '🐻',
+        'bull': '🐂',
+        // 트레이너
+        'super_potion': '💊',
+        'brawl_ball': '⚽',
+        'speed_boots': '👟',
+        'gales_supply': '📦',
+        'taras_portal': '🌀',
+        'crows_poison': '🧪'
+    };
+
+    // ===== 브롤러별 그라디언트 색상 =====
+    const CARD_GRADIENTS = {
+        'shelly': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        'bandita_shelly': 'linear-gradient(135deg, #8e44ad 0%, #c0392b 100%)',
+        'colt': 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+        'royal_agent_colt': 'linear-gradient(135deg, #34495e 0%, #2c3e50 100%)',
+        'poco': 'linear-gradient(135deg, #1abc9c 0%, #16a085 100%)',
+        'serenade_poco': 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+        'nita': 'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
+        'bull': 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+        // 트레이너 기본
+        'trainer_item': 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
+        'trainer_supporter': 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)'
+    };
+
+    // ===== HP 바 색상 계산 =====
+    function getHpBarColor(currentHp, maxHp) {
+        if (typeof currentHp !== 'number' || typeof maxHp !== 'number' || maxHp === 0) {
+            return 'linear-gradient(90deg, #9ca3af, #6b7280)';
+        }
+
+        const percentage = (currentHp / maxHp) * 100;
+        if (percentage > 60) return 'linear-gradient(90deg, #4ade80, #22c55e)';
+        if (percentage > 30) return 'linear-gradient(90deg, #fbbf24, #f59e0b)';
+        return 'linear-gradient(90deg, #f87171, #ef4444)';
+    }
+
+    // ===== 손패 정렬 =====
+    function sortHandCards(hand) {
+        if (!Array.isArray(hand)) return [];
+
+        try {
+            return [...hand].sort((a, b) => {
+                // 1순위: 카드 타입 (브롤러 우선)
+                if (a.cardType !== b.cardType) {
+                    return a.cardType === 'brawler' ? -1 : 1;
+                }
+
+                // 2순위: 브롤러인 경우 기본/진화 구분 (기본 우선)
+                if (a.cardType === 'brawler' && a.isBasic !== b.isBasic) {
+                    return a.isBasic ? -1 : 1;
+                }
+
+                // 3순위: 이름 가나다순/알파벳순
+                return a.name.localeCompare(b.name, 'ko');
+            });
+        } catch (error) {
+            console.error('sortHandCards error:', error);
+            return hand;
+        }
+    }
+
     // ===== 카드 요소 생성 =====
     function createCardElement(card, playerType, location, index) {
         const div = document.createElement('div');
@@ -156,9 +234,19 @@
         // 브롤러 카드
         if (card.cardType === 'brawler') {
             const imagePath = `images/brawlers/brawler_${card.id}.png`;
+            const emoji = CARD_EMOJIS[card.id] || '❓';
+            const gradient = CARD_GRADIENTS[card.id] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+
+            // HP 바 계산
+            const hpPercentage = Math.max(0, Math.min(100, (card.hp / card.maxHp) * 100));
+            const hpColor = getHpBarColor(card.hp, card.maxHp);
+
             div.innerHTML = `
                 <div class="card-image-container">
-                    <img src="${imagePath}" alt="${card.name}" class="card-image" onerror="this.style.display='none'">
+                    <img src="${imagePath}" alt="${card.name}" class="card-image" onerror="this.parentElement.innerHTML='<div class=\\'card-emoji-fallback\\'><div class=\\'emoji-icon\\'>${emoji}</div></div>'">
+                </div>
+                <div class="hp-bar-container">
+                    <div class="hp-bar" style="width: ${hpPercentage}%; background: ${hpColor};"></div>
                 </div>
                 <div class="card-info">
                     <div class="card-name">${card.name}</div>
@@ -167,6 +255,9 @@
                     <div class="card-attacks">${getAttacksDisplay(card, playerType, location)}</div>
                 </div>
             `;
+
+            // 그라디언트 배경 적용 (이미지 없을 때 사용)
+            div.style.setProperty('--card-gradient', gradient);
 
             // 배치 클릭 이벤트 (플레이어 손패만)
             if (playerType === 'player' && location === 'hand' && card.isBasic) {
@@ -257,9 +348,12 @@
         // 트레이너 카드
         else if (card.cardType === 'trainer') {
             const imagePath = `images/trainers/trainer_${card.id}.png`;
+            const emoji = CARD_EMOJIS[card.id] || '📜';
+            const gradient = card.trainerType === 'item' ? CARD_GRADIENTS['trainer_item'] : CARD_GRADIENTS['trainer_supporter'];
+
             div.innerHTML = `
                 <div class="card-image-container">
-                    <img src="${imagePath}" alt="${card.name}" class="card-image" onerror="this.style.display='none'">
+                    <img src="${imagePath}" alt="${card.name}" class="card-image" onerror="this.parentElement.innerHTML='<div class=\\'card-emoji-fallback\\'><div class=\\'emoji-icon\\'>${emoji}</div></div>'">
                 </div>
                 <div class="card-info">
                     <div class="card-name">${card.name}</div>
@@ -267,6 +361,9 @@
                     <div class="card-description">${card.description || ''}</div>
                 </div>
             `;
+
+            // 그라디언트 배경 적용
+            div.style.setProperty('--card-gradient', gradient);
 
             // 사용 클릭 이벤트
             if (playerType === 'player' && location === 'hand') {
@@ -276,6 +373,12 @@
                 div.style.cursor = 'pointer';
             }
         }
+
+        // 우클릭으로 카드 상세보기
+        div.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showCardModal(card);
+        });
 
         return div;
     }
@@ -513,10 +616,35 @@
 
     // ===== 턴 정보 렌더링 =====
     function renderTurnInfo(gameState) {
+        if (typeof gameState !== 'object') return;
+
         const turnInfoEl = document.getElementById('turn-info');
-        if (turnInfoEl) {
-            const current = gameState.currentPlayer === 'player' ? '플레이어' : 'AI';
-            turnInfoEl.innerHTML = `턴 ${gameState.turnCount}<br>${current}`;
+        if (!turnInfoEl) return;
+
+        try {
+            const isPlayerTurn = gameState.currentPlayer === 'player';
+            const player = isPlayerTurn ? gameState.player : gameState.ai;
+            const playerName = isPlayerTurn ? '플레이어' : 'AI';
+            const playerColor = isPlayerTurn ? '#3b82f6' : '#ef4444';
+
+            turnInfoEl.innerHTML = `
+                <div class="turn-number">턴 ${gameState.turnCount}</div>
+                <div class="turn-player-name" style="color: ${playerColor};">
+                    ${playerName}
+                </div>
+                <div class="turn-actions">
+                    <div class="turn-action-item ${player.energyAttachedThisTurn ? 'done' : ''}">
+                        <span class="action-icon">⚡</span>
+                        <span class="action-label">에너지</span>
+                    </div>
+                    <div class="turn-action-item ${player.supporterUsedThisTurn ? 'done' : ''}">
+                        <span class="action-icon">👤</span>
+                        <span class="action-label">서포터</span>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('renderTurnInfo error:', error);
         }
     }
 
@@ -672,11 +800,106 @@
         }
     }
 
+    // ===== 카드 상세보기 모달 =====
+    function showCardModal(card) {
+        if (!card || typeof card !== 'object') return;
+
+        const modal = document.getElementById('card-modal-panel');
+        const overlay = document.getElementById('overlay');
+
+        if (!modal || !overlay) return;
+
+        try {
+            const modalContent = modal.querySelector('.card-modal-content');
+
+            let html = '';
+
+            if (card.cardType === 'brawler') {
+                const energyInfo = card.energy && card.energy.length > 0
+                    ? `🔷 ${card.energy.length}개 부착됨`
+                    : '에너지 없음';
+
+                const evolutionInfo = card.evolvesFrom
+                    ? `진화: ${card.evolvesFrom} → ${card.name}`
+                    : (card.evolvesTo ? `진화 가능: ${card.name} → ${card.evolvesTo}` : '진화 불가');
+
+                html = `
+                    <div class="modal-card-large">
+                        <img src="images/brawlers/brawler_${card.id}.png" alt="${card.name}"
+                             onerror="this.style.display='none'">
+                    </div>
+                    <div class="modal-card-info">
+                        <h2 class="modal-card-name">${card.name}</h2>
+                        <div class="modal-info-row">
+                            <span class="modal-label">타입:</span>
+                            <span class="modal-value">브롤러 (${card.rarity})</span>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-label">HP:</span>
+                            <span class="modal-value">${card.hp} / ${card.maxHp}</span>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-label">에너지:</span>
+                            <span class="modal-value">${energyInfo}</span>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-label">후퇴 비용:</span>
+                            <span class="modal-value">${'🔷'.repeat(card.retreatCost || 0)}</span>
+                        </div>
+                        <div class="modal-info-row">
+                            <span class="modal-label">진화:</span>
+                            <span class="modal-value">${evolutionInfo}</span>
+                        </div>
+                        <div class="modal-attacks-section">
+                            <h3>공격</h3>
+                            ${card.attacks.map(atk => `
+                                <div class="modal-attack-item">
+                                    <div class="attack-header">
+                                        <span class="attack-name">${atk.name}</span>
+                                        <span class="attack-damage">${atk.damage || 0}</span>
+                                    </div>
+                                    <div class="attack-cost">${window.EnergySystem.getEnergyDisplay(atk.cost)}</div>
+                                    ${atk.effect ? `<div class="attack-effect">효과: ${atk.effect}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (card.cardType === 'trainer') {
+                html = `
+                    <div class="modal-card-large">
+                        <img src="images/trainers/trainer_${card.id}.png" alt="${card.name}"
+                             onerror="this.style.display='none'">
+                    </div>
+                    <div class="modal-card-info">
+                        <h2 class="modal-card-name">${card.name}</h2>
+                        <div class="modal-info-row">
+                            <span class="modal-label">타입:</span>
+                            <span class="modal-value">트레이너 (${card.trainerType === 'item' ? '아이템' : '서포터'})</span>
+                        </div>
+                        <div class="modal-effect-section">
+                            <h3>효과</h3>
+                            <p>${card.description || card.effect}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            modalContent.innerHTML = html;
+            modal.classList.add('active');
+            overlay.classList.add('active');
+        } catch (error) {
+            console.error('showCardModal error:', error);
+        }
+    }
+
     // 전역 노출
     window.UI = {
         render: render,
         showAttackPanel: showAttackPanel,
-        playCardDrawAnimation: playCardDrawAnimation
+        playCardDrawAnimation: playCardDrawAnimation,
+        showCardModal: showCardModal,
+        createCardElement: createCardElement
     };
 
     if (DEBUG) {

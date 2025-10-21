@@ -78,6 +78,14 @@
         <div class="side-area right-side">
             <div class="turn-info" id="turn-info">턴 1<br>플레이어</div>
 
+            <!-- 게임 로그 패널 -->
+            <div class="game-log-panel" id="game-log-panel">
+                <div class="game-log-header">게임 로그</div>
+                <div class="game-log-items" id="game-log-items">
+                    <!-- 로그 아이템들 동적 생성 -->
+                </div>
+            </div>
+
             <!-- 에너지존 (드래그 가능) -->
             <div class="energy-zone-panel" id="player-energy-zone">
                 <div class="energy-zone-label">에너지존</div>
@@ -113,6 +121,28 @@
         </div>
         <div class="attack-options" id="attack-options">
             <!-- 공격 버튼들 동적 생성 -->
+        </div>
+    </div>
+
+    <!-- 벤치 선택 패널 (하단 슬라이드) -->
+    <div class="bench-selection-panel" id="bench-selection-panel">
+        <div class="bench-selection-header">
+            <span>새 배틀 브롤러 선택</span>
+            <button class="close-btn" id="close-bench-selection-btn">취소</button>
+        </div>
+        <div class="bench-selection-cards" id="bench-selection-cards">
+            <!-- 벤치 브롤러 카드들 동적 생성 -->
+        </div>
+    </div>
+
+    <!-- 카드 상세보기 모달 -->
+    <div class="card-modal-panel" id="card-modal-panel">
+        <div class="card-modal-header">
+            <span>카드 상세 정보</span>
+            <button class="close-btn" id="close-card-modal-btn">닫기</button>
+        </div>
+        <div class="card-modal-content">
+            <!-- 카드 상세 정보 동적 생성 -->
         </div>
     </div>
 
@@ -235,6 +265,7 @@
     <script src="js/cards.js"></script>
     <script src="js/energy.js"></script>
     <script src="js/effects.js"></script>
+    <script src="js/gameLog.js"></script>
     <script src="js/deckbuilder.js"></script>
     <script src="js/game.js"></script>
     <script src="js/ui.js"></script>
@@ -343,12 +374,26 @@
                     document.getElementById('overlay').classList.remove('active');
                 });
 
+                // 벤치 선택 패널 닫기
+                document.getElementById('close-bench-selection-btn').addEventListener('click', function() {
+                    document.getElementById('bench-selection-panel').classList.remove('active');
+                    document.getElementById('overlay').classList.remove('active');
+                });
+
+                // 카드 모달 닫기
+                document.getElementById('close-card-modal-btn').addEventListener('click', function() {
+                    document.getElementById('card-modal-panel').classList.remove('active');
+                    document.getElementById('overlay').classList.remove('active');
+                });
+
                 // 오버레이 클릭 시 모든 패널 닫기 (메뉴/덱빌더 제외)
                 document.getElementById('overlay').addEventListener('click', function() {
                     const mainMenuPanel = document.getElementById('main-menu-panel');
                     const deckbuilderPanel = document.getElementById('deckbuilder-panel');
                     const handPanel = document.getElementById('hand-panel');
                     const attackPanel = document.getElementById('attack-panel');
+                    const benchSelectionPanel = document.getElementById('bench-selection-panel');
+                    const cardModalPanel = document.getElementById('card-modal-panel');
 
                     // 메뉴나 덱 빌더가 활성화되어 있으면 오버레이 클릭 무시
                     if ((mainMenuPanel && mainMenuPanel.classList.contains('active')) ||
@@ -359,6 +404,8 @@
                     // 다른 패널들 닫기
                     if (handPanel) handPanel.classList.remove('active');
                     if (attackPanel) attackPanel.classList.remove('active');
+                    if (benchSelectionPanel) benchSelectionPanel.classList.remove('active');
+                    if (cardModalPanel) cardModalPanel.classList.remove('active');
                     this.classList.remove('active');
                 });
 

@@ -120,6 +120,12 @@
                 console.log('카드 드로우:', card.name);
             }
 
+            // 게임 로그 추가
+            if (typeof window.GameLog !== 'undefined') {
+                const playerName = (player === gameState.player) ? '플레이어' : 'AI';
+                window.GameLog.addLog(`${playerName}가 카드를 뽑았습니다.`, 'draw');
+            }
+
             return card;
         } catch (error) {
             console.error('drawCard 오류:', error);
@@ -340,6 +346,11 @@
                 player.battleZone = card;
                 card.canAttack = false; // 배치한 턴은 공격 불가
                 if (DEBUG) console.log(card.name + ' 배틀존에 배치');
+
+                // 게임 로그 추가
+                if (typeof window.GameLog !== 'undefined') {
+                    window.GameLog.addLog(`${card.name}을(를) 배틀존에 배치`, 'play');
+                }
             }
             // 벤치에 배치
             else if (!toBattle && player.bench.length < 3) {
@@ -347,6 +358,11 @@
                 player.bench.push(card);
                 card.canAttack = false;
                 if (DEBUG) console.log(card.name + ' 벤치에 배치');
+
+                // 게임 로그 추가
+                if (typeof window.GameLog !== 'undefined') {
+                    window.GameLog.addLog(`${card.name}을(를) 벤치에 배치`, 'play');
+                }
             } else {
                 console.log('배치할 수 없습니다');
                 return false;
@@ -401,6 +417,11 @@
 
             player.energyAttachedThisTurn = true;
 
+            // 게임 로그 추가
+            if (typeof window.GameLog !== 'undefined') {
+                window.GameLog.addLog(`${brawler.name}에게 에너지 부착`, 'energy');
+            }
+
             // UI 업데이트
             if (typeof window.UI !== 'undefined') {
                 window.UI.render(gameState);
@@ -444,6 +465,13 @@
                                 damageNum.parentNode.removeChild(damageNum);
                             }
                         }, 1200);
+                    }
+
+                    // HP 바 애니메이션
+                    const hpBar = defenderEl.querySelector('.hp-bar');
+                    if (hpBar) {
+                        hpBar.classList.add('hp-damage-anim');
+                        setTimeout(() => hpBar.classList.remove('hp-damage-anim'), 500);
                     }
 
                     // 애니메이션 클래스 제거
@@ -542,6 +570,12 @@
 
                     opponent.battleZone.hp -= finalDamage;
                     if (DEBUG) console.log('최종 피해: ' + finalDamage);
+
+                    // 게임 로그 추가
+                    if (typeof window.GameLog !== 'undefined') {
+                        const defenderName = opponent.battleZone.name;
+                        window.GameLog.addLog(`${attacker.name}의 ${attackData.name}! ${defenderName}에게 ${finalDamage} 데미지!`, 'attack');
+                    }
 
                     // 반동 피해 적용
                     if (attacker.recoilDamage && attacker.recoilDamage > 0) {
@@ -684,6 +718,136 @@
         }
     }
 
+    // ===== 후퇴 시스템 =====
+    function retreat() {
+        const player = gameState.player;
+        const brawler = player.battleZone;
+
+        // 입력값 검증
+        if (!brawler) {
+            alert('배틀존에 브롤러가 없습니다.');
+            return false;
+        }
+
+        if (player.bench.length >= 3) {
+            alert('벤치가 가득 찼습니다.');
+            return false;
+        }
+
+        if (player.bench.length === 0) {
+            alert('벤치에 브롤러가 없어 후퇴할 수 없습니다.');
+            return false;
+        }
+
+        // 후퇴 비용 계산 (후퇴 비용 감소 효과 적용)
+        const baseCost = brawler.retreatCost || 0;
+        const reduction = brawler.retreatCostReduction || 0;
+        const retreatCost = Math.max(0, baseCost - reduction);
+        const currentEnergy = brawler.energy ? brawler.energy.length : 0;
+
+        if (currentEnergy < retreatCost) {
+            alert(`후퇴하려면 에너지가 ${retreatCost}개 필요합니다. (현재 ${currentEnergy}개)`);
+            return false;
+        }
+
+        try {
+            // 에너지 버리기
+            for (let i = 0; i < retreatCost; i++) {
+                if (typeof window.EnergySystem !== 'undefined' && window.EnergySystem.discardEnergy) {
+                    window.EnergySystem.discardEnergy(brawler, 1);
+                } else {
+                    // 수동 처리
+                    if (brawler.energy && brawler.energy.length > 0) {
+                        brawler.energy.shift();
+                        player.discardPile.push({ cardType: 'energy' });
+                    }
+                }
+            }
+
+            // 배틀존 → 벤치 이동
+            player.bench.push(brawler);
+            player.battleZone = null;
+
+            // 게임 로그
+            if (typeof window.GameLog !== 'undefined') {
+                window.GameLog.addLog(`${brawler.name}이(가) 후퇴했습니다 (비용: ${retreatCost}에너지)`, 'info');
+            }
+
+            if (DEBUG) console.log(`${brawler.name} 후퇴 완료 (비용: ${retreatCost})`);
+
+            // 벤치 선택 패널 표시
+            showBenchSelectionPanel();
+
+            return true;
+        } catch (error) {
+            console.error('retreat error:', error);
+            alert('후퇴 중 오류가 발생했습니다.');
+            return false;
+        }
+    }
+
+    // ===== 벤치 선택 패널 표시 =====
+    function showBenchSelectionPanel() {
+        const panel = document.getElementById('bench-selection-panel');
+        const overlay = document.getElementById('overlay');
+        const benchContainer = document.getElementById('bench-selection-cards');
+
+        if (!panel || !overlay || !benchContainer) {
+            console.error('showBenchSelectionPanel: 패널 요소를 찾을 수 없음');
+            return;
+        }
+
+        try {
+            benchContainer.innerHTML = '';
+
+            gameState.player.bench.forEach((brawler, index) => {
+                // UI.createCardElement는 외부에 노출되지 않으므로 간단한 카드 생성
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card';
+                cardEl.style.cursor = 'pointer';
+
+                const imagePath = `images/brawlers/brawler_${brawler.id}.png`;
+                const hpPercentage = Math.max(0, Math.min(100, (brawler.hp / brawler.maxHp) * 100));
+
+                cardEl.innerHTML = `
+                    <div class="card-image-container">
+                        <img src="${imagePath}" alt="${brawler.name}" class="card-image" onerror="this.style.display='none'">
+                    </div>
+                    <div class="card-info">
+                        <div class="card-name">${brawler.name}</div>
+                        <div class="card-hp">HP: ${brawler.hp}/${brawler.maxHp}</div>
+                        <div class="card-energy">🔷 x ${brawler.energy ? brawler.energy.length : 0}</div>
+                    </div>
+                `;
+
+                cardEl.addEventListener('click', function() {
+                    gameState.player.battleZone = brawler;
+                    gameState.player.bench.splice(index, 1);
+
+                    panel.classList.remove('active');
+                    overlay.classList.remove('active');
+
+                    if (typeof window.UI !== 'undefined') {
+                        window.UI.render(gameState);
+                    }
+
+                    if (typeof window.GameLog !== 'undefined') {
+                        window.GameLog.addLog(`${brawler.name}이(가) 배틀존으로 이동했습니다`, 'info');
+                    }
+
+                    if (DEBUG) console.log(`${brawler.name} 배틀존으로 이동`);
+                });
+
+                benchContainer.appendChild(cardEl);
+            });
+
+            panel.classList.add('active');
+            overlay.classList.add('active');
+        } catch (error) {
+            console.error('showBenchSelectionPanel error:', error);
+        }
+    }
+
     // ===== 전역 API 노출 =====
     window.Game = {
         init: initGame,
@@ -692,7 +856,8 @@
         attachEnergy: attachEnergyToBrawler,
         attack: attack,
         endTurn: endTurn,
-        checkWin: checkWinCondition
+        checkWin: checkWinCondition,
+        retreat: retreat
     };
 
     if (DEBUG) {

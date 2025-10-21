@@ -9,6 +9,69 @@
     const MAX_CARD_COPIES = 2;
     const STORAGE_KEY = 'brawl_tcg_deck';
 
+    // ===== 카드 이모지 & 그라디언트 (ui.js와 동일) =====
+    const CARD_EMOJIS = {
+        // 브롤러
+        'shelly': '🔫',
+        'bandita_shelly': '💀🔫',
+        'colt': '🎯',
+        'royal_agent_colt': '🕴️',
+        'poco': '🎸',
+        'serenade_poco': '🎸✨',
+        'nita': '🐻',
+        'bull': '🐂',
+        // Phase 2 브롤러 (예시)
+        'edgar': '🧣',
+        'mortis': '⚰️',
+        'byron': '💉',
+        'bea': '🐝',
+        'bibi': '🏏',
+        'piper': '☂️',
+        'dynamike': '💣',
+        'barley': '🍺',
+        'jessie': '🔧',
+        'penny': '💰',
+        // 트레이너
+        'super_potion': '💊',
+        'brawl_ball': '⚽',
+        'speed_boots': '👟',
+        'gales_supply': '📦',
+        'taras_portal': '🌀',
+        'crows_poison': '🧪',
+        'power_cube': '🔷',
+        'instant_switch': '🔄',
+        'brawl_box': '📦',
+        'maxs_rush': '🏃',
+        'spikes_regen': '🌵',
+        'franks_defense': '🛡️',
+        'shield_gear': '🛡️'
+    };
+
+    const CARD_GRADIENTS = {
+        'shelly': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        'bandita_shelly': 'linear-gradient(135deg, #8e44ad 0%, #c0392b 100%)',
+        'colt': 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+        'royal_agent_colt': 'linear-gradient(135deg, #34495e 0%, #2c3e50 100%)',
+        'poco': 'linear-gradient(135deg, #1abc9c 0%, #16a085 100%)',
+        'serenade_poco': 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+        'nita': 'linear-gradient(135deg, #e67e22 0%, #d35400 100%)',
+        'bull': 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+        // Phase 2
+        'edgar': 'linear-gradient(135deg, #34495e 0%, #2c3e50 100%)',
+        'mortis': 'linear-gradient(135deg, #8e44ad 0%, #2c3e50 100%)',
+        'byron': 'linear-gradient(135deg, #1abc9c 0%, #16a085 100%)',
+        'bea': 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)',
+        'bibi': 'linear-gradient(135deg, #e91e63 0%, #c2185b 100%)',
+        'piper': 'linear-gradient(135deg, #ec407a 0%, #d81b60 100%)',
+        'dynamike': 'linear-gradient(135deg, #ff5722 0%, #e64a19 100%)',
+        'barley': 'linear-gradient(135deg, #795548 0%, #5d4037 100%)',
+        'jessie': 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)',
+        'penny': 'linear-gradient(135deg, #ffd700 0%, #ffa500 100%)',
+        // 트레이너
+        'trainer_item': 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
+        'trainer_supporter': 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)'
+    };
+
     const DeckBuilder = {
         currentDeck: [],  // [{id: 'shelly', count: 2}, ...]
 
@@ -473,8 +536,15 @@
                         const card = window.CardDB.get(id);
                         if (!card) return '';
 
+                        const emoji = CARD_EMOJIS[id] || '❓';
+                        const gradient = CARD_GRADIENTS[id] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
                         const rarityIcon = card.isBasic ? '⭐' : '✨';
-                        return '<div class="card-grid-item" onclick="window.DeckBuilder.addCard(\'' + id + '\')">' +
+                        const imagePath = 'assets/images/brawler_' + id + '.png';
+
+                        return '<div class="card-grid-item deck-card-with-image" onclick="window.DeckBuilder.addCard(\'' + id + '\')" style="--card-gradient: ' + gradient + '">' +
+                            '<div class="deck-card-image-container">' +
+                            '<img src="' + imagePath + '" alt="' + card.name + '" class="deck-card-image" onerror="this.parentElement.innerHTML=\'<div class=\\\'deck-emoji-icon\\\'>' + emoji + '</div>\'; this.parentElement.parentElement.classList.add(\'deck-card-emoji\');">' +
+                            '</div>' +
                             '<div class="card-name">' + rarityIcon + ' ' + card.name + '</div>' +
                             '<div class="card-hp">HP: ' + card.hp + '</div>' +
                             '</div>';
@@ -492,10 +562,17 @@
                         const card = window.CardDB.get(id);
                         if (!card) return '';
 
+                        const emoji = CARD_EMOJIS[id] || (card.trainerType === 'item' ? '📦' : '👤');
+                        const gradient = card.trainerType === 'item' ? CARD_GRADIENTS['trainer_item'] : CARD_GRADIENTS['trainer_supporter'];
                         const typeIcon = card.trainerType === 'item' ? '📦' : '👤';
-                        return '<div class="card-grid-item" onclick="window.DeckBuilder.addCard(\'' + id + '\')">' +
+                        const imagePath = 'assets/images/trainer_' + id + '.png';
+
+                        return '<div class="card-grid-item deck-card-with-image" onclick="window.DeckBuilder.addCard(\'' + id + '\')" style="--card-gradient: ' + gradient + '">' +
+                            '<div class="deck-card-image-container">' +
+                            '<img src="' + imagePath + '" alt="' + card.name + '" class="deck-card-image" onerror="this.parentElement.innerHTML=\'<div class=\\\'deck-emoji-icon\\\'>' + emoji + '</div>\'; this.parentElement.parentElement.classList.add(\'deck-card-emoji\');">' +
+                            '</div>' +
                             '<div class="card-name">' + typeIcon + ' ' + card.name + '</div>' +
-                            '<div class="card-desc">' + (card.description || '') + '</div>' +
+                            '<div class="card-desc">' + (card.description || '').substring(0, 30) + '...</div>' +
                             '</div>';
                     }).join('');
                     trainerGrid.innerHTML = trainerHtml;
